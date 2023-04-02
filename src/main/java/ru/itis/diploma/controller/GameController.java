@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import ru.itis.diploma.dto.CreateGameDto;
 import ru.itis.diploma.dto.GameDto;
 import ru.itis.diploma.model.Account;
@@ -17,8 +18,8 @@ import ru.itis.diploma.service.GameService;
 import ru.itis.diploma.service.ManufacturerService;
 
 import java.util.Comparator;
+import java.util.List;
 
-import static ru.itis.diploma.model.GameStatus.CREATED;
 import static ru.itis.diploma.model.GameStatus.STARTED;
 
 @Controller
@@ -65,23 +66,26 @@ public class GameController {
         }
     }
 
+    @ResponseBody
     @GetMapping("/{accountId}/games")
     @PreAuthorize("hasAuthority('USER')")
-    public String getAccountGames(@PathVariable Long accountId, Model model) {
-        model.addAttribute("games",
-            gameService.getAccountGames(accountId).stream()
-                .sorted(Comparator.comparing(GameDto::getStartDate).reversed())
-                .toList());
-        return "account_games";
+    public List<GameDto> getAccountGames(@PathVariable Long accountId) {
+//        model.addAttribute("games",
+        return gameService.getAccountGames(accountId).stream()
+            .sorted(Comparator.comparing(GameDto::getStartDate).reversed())
+            .toList();
+//        return "account_games";
     }
 
+    @ResponseBody
     @GetMapping("/games")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String getAllGamesPage(Model model) {
-        model.addAttribute("games", gameService.getAllGames().stream()
+    public List<GameDto> getAllGamesPage() {
+//        model.addAttribute("games",
+        return gameService.getAllGames().stream()
             .sorted(Comparator.comparing(GameDto::getStartDate).reversed())
-            .toList());
-        return "all_games";
+            .toList();
+//        return "all_games";
     }
 
 

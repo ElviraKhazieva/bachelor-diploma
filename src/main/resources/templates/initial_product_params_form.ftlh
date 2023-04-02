@@ -5,8 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <style>
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px; /* Высота футера */
+        }
+    </style>
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Economic Concurrent Game</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/profile">Профиль</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Выйти</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
 <div class="container" style="margin: 100px auto auto;">
     <form class="row g-3 color-rect-border" method="post" action="/game/${game.id}/production-parameters">
         <h1 style="text-align: center">Определите параметры открываемого предприятия</h1>
@@ -72,7 +105,11 @@
         </div>
     </form>
 </div>
-
+<footer class="footer d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
+    <div class="text-white mb-3">
+        Copyright © 2023. All rights reserved.
+    </div>
+</footer>
 <script type="text/javascript">
 
 
@@ -97,9 +134,12 @@
     var advertisingDays = document.getElementById('advertisingDays');
     advertisingDays.addEventListener('input', calculate);
 
+    var M = 10;
+
+    // количества дней рекламы циклом производства (time to market)
     function calculateMaxOfAdvertisingDays() {
-        let maxValue = Math.ceil(Number(productCount.value) / Number(productionCapacityPerDay.value))
-        advertisingDays.setAttribute("max", maxValue.toString())
+        let maxAdvertisingDays = Math.ceil(Number(productCount.value) / (Math.ceil(productionCapacityPerDay.value / M) * M))
+        advertisingDays.setAttribute("max", maxAdvertisingDays.toString())
     }
 
     var advertisingCost = document.getElementById('advertisingCost');
@@ -120,14 +160,13 @@
         var baseCostPrice = "${game.baseCostPrice}".replace(/\s/g, '').replace(/,/, '.');
         costPrice.value = (Number(k) * Number(baseCostPrice) * Number(qualityIndex.value)).toFixed(2);
 
-        var M = 10;
         var productPower = "${game.productPower}".replace(/\s/g, '').replace(/,/, '.');
         var baseAdvertisementPrice = "${game.baseAdvertisementPrice}".replace(/\s/g, '').replace(/,/, '.');
         var productionCreation = (Number(productPower) * Number(productionCapacityPerDay.value) / M).toFixed(2);
         var advertisement = (Number(baseAdvertisementPrice) * Number(advertisingIntensityIndex.value) * Number(advertisingDays.value)).toFixed(2);
         advertisingCost.value = advertisement
         var initialProduction = (Number(productCount.value) * Number(costPrice.value)).toFixed(2)
-        investmentCreditAmount.value = Number(productionCreation) + Number(advertisement) + Number(initialProduction)
+        investmentCreditAmount.value = (Number(productionCreation) + Number(advertisement) + Number(initialProduction)).toFixed(2);
     }
 
 </script>

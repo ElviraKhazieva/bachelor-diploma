@@ -28,10 +28,31 @@
                 height: 100%;
             }
         }
+
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px; /* Высота футера */
+        }
     </style>
 </head>
 <body>
 <section class="vh-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Economic Concurrent Game</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-9 col-lg-6 col-xl-5">
@@ -70,10 +91,11 @@
                     <div class="text-center text-lg-start mt-10 pt-4">
                         <label>
                             <input class="btn btn-primary btn-lg"
-                                   style="padding-left: 2.5rem; padding-right: 2.5rem;" type="submit" value="Зарегистрироваться">
+                                   style="padding-left: 2.5rem; padding-right: 2.5rem;" type="submit"
+                                   value="Зарегистрироваться">
                         </label>
                         <p class="small fw-bold mt-2 pt-1 mb-0">Уже есть аккаунт? <a
-                                    href="http://localhost:8080/sign-in"
+                                    href="http://localhost:80/sign-in"
                                     class="link-danger">Войти</a></p>
                     </div>
 
@@ -81,37 +103,11 @@
             </div>
         </div>
     </div>
-    <div
-            class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
-        <!-- Copyright -->
+    <footer class="footer d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
         <div class="text-white mb-3">
             Copyright © 2023. All rights reserved.
         </div>
-        <!-- Copyright -->
-    </div>
+    </footer>
 </section>
-
-
-<#--<h1>Регистрация</h1>-->
-<#--<form action="/signUp" method="post">-->
-<#--    <@spring.bind path="signUpForm"/>-->
-<#--    <p class="error">${spring.status.errorMessage}</p>-->
-<#--    <label for="firstName">Введите имя:</label>-->
-<#--    <@spring.formInput "signUpForm.fullName"/>-->
-<#--    <@spring.showErrors "<br>" "error"/>-->
-<#--    <br>-->
-<#--    <br>-->
-<#--    <label for="email">Введите адресс электронной почты:</label>-->
-<#--    <@spring.formInput "signUpForm.email"/>-->
-<#--    <@spring.showErrors "<br>" "error"/>-->
-<#--    <br>-->
-<#--    <br>-->
-<#--    <label for="password">Введите пароль:</label>-->
-<#--    <@spring.formPasswordInput "signUpForm.password"/>-->
-<#--    <@spring.showErrors "<br>" "error"/>-->
-<#--    <br>-->
-<#--    <br>-->
-<#--    <input type="submit" value="Sign Up">-->
-<#--</form>-->
 </body>
 </html>

@@ -10,4 +10,6 @@ public class EconomicIndicatorsCalculator {
     public int calculateTimeToMarket(Integer productCount, Integer productionCapacityPerDay) {
         return (int) Math.ceil(productCount / (Math.ceil(productionCapacityPerDay / M) * M));
     }
+    //Math.ceil(productionCapacityPerDay / M) - количество станков
+    //количество станков * M - сколько производится за день максимум
 }

@@ -25,7 +25,7 @@ public class GameDto {
 
     private LocalDateTime endDate;
 
-    private GameStatus gameStatus;
+    private GameStatus status;
 
     private BigDecimal interestRateInvestmentCredit;
 
@@ -45,7 +45,7 @@ public class GameDto {
             .name(game.getName())
             .startDate(game.getStartDate())
             .endDate(game.getEndDate())
-            .gameStatus(game.getStatus())
+            .status(game.getStatus())
             .interestRateInvestmentCredit(game.getInterestRateInvestmentCredit())
             .interestRateBusinessCredit(game.getInterestRateBusinessCredit())
             .salesTax(game.getSalesTax())

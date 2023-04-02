@@ -40,13 +40,7 @@ public class BuyerService {
             .sorted(Comparator.comparingDouble(this::calculateValue).reversed())
             .toList();
 
-        for (ProductionParameters productionParameters : productionParametersList) {
-            var timeToMarket = economicIndicatorsCalculator.calculateTimeToMarket(
-                productionParameters.getProductCount(), productionParameters.getProductionCapacityPerDay());
-            if ((Game.currentDay - productionParameters.getStartDate()) <= timeToMarket) { //todo: если день ввода параметров тоже считается, то нужно еще + 1 делать
-                MANUFACTURER_CURRENT_PRODUCT_COUNT.put(productionParameters.getManufacturer().getId(), timeToMarket);
-            }
-        }
+        produceManufacturersProductsToMarket(productionParametersList);
 
         List<TradingSessionResults> tradingSessionResultsList = new ArrayList<>();
         List<Manufacturer> manufacturers = new ArrayList<>();
@@ -77,6 +71,22 @@ public class BuyerService {
         tradingSessionResultsRepository.saveAll(tradingSessionResultsList);
     }
 
+    private void produceManufacturersProductsToMarket(List<ProductionParameters> productionParametersList) {
+        for (ProductionParameters productionParameters : productionParametersList) {
+            var timeToMarket = economicIndicatorsCalculator.calculateTimeToMarket(
+                productionParameters.getProductCount(), productionParameters.getProductionCapacityPerDay());
+            if ((Game.currentDay - productionParameters.getStartDate()) <= timeToMarket) {
+                if ((productionParameters.getStartDate() + timeToMarket) == Game.currentDay) {
+                    MANUFACTURER_CURRENT_PRODUCT_COUNT.put(productionParameters.getManufacturer().getId(),
+                        productionParameters.getProductCount() - (timeToMarket - 1) *
+                            productionParameters.getProductionCapacityPerDay());
+                } else {
+                    MANUFACTURER_CURRENT_PRODUCT_COUNT.put(productionParameters.getManufacturer().getId(),
+                        productionParameters.getProductionCapacityPerDay());
+                }
+            }
+        }
+    }
 
 
     private double calculateValue(ProductionParameters productionParameters) {

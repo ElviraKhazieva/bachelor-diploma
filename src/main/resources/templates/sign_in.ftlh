@@ -23,10 +23,32 @@
                 height: 100%;
             }
         }
+
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px; /* Высота футера */
+        }
     </style>
 </head>
 <body>
 <section class="vh-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Economic Concurrent Game</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-9 col-lg-6 col-xl-5">
@@ -74,7 +96,7 @@
                                    style="padding-left: 2.5rem; padding-right: 2.5rem;" type="submit" value="Войти">
                         </label>
                         <p class="small fw-bold mt-2 pt-1 mb-0">Еще не зарегистрированы? <a
-                                    href="http://localhost:8080/sign-up"
+                                    href="http://localhost:80/sign-up"
                                     class="link-danger">Регистрация</a></p>
                     </div>
 
@@ -82,22 +104,12 @@
             </div>
         </div>
     </div>
-    <div
-            class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
-        <!-- Copyright -->
+
+    <footer class="footer d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
         <div class="text-white mb-3">
             Copyright © 2023. All rights reserved.
         </div>
-        <!-- Copyright -->
-    </div>
+    </footer>
 </section>
-<#--<form action="/signIn" method="post">-->
-<#--    <input type="email" name="email" placeholder="Email">-->
-<#--    <input type="password" name="password" placeholder="Password">-->
-<#--    <label>-->
-<#--        <input type="checkbox" name="rememberMe">Запомни меня-->
-<#--    </label>-->
-<#--    <input type="submit" value="Sign In">-->
-<#--</form>-->
 </body>
 </html>
