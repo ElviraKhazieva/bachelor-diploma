@@ -66,7 +66,7 @@
                         <th>Ассортимент</th>
                         <th>Индекс качества</th>
                         <th>Мощность производства(ед/сутки)</th>
-                        <th>Время выходна на рынок(дней)</th>
+                        <th>Число дней выпуска продукции</th>
                         <th>День начала рекламы</th>
                         <th>День завершения рекламы</th>
                         <th>Стоимость рекламы</th>
@@ -81,12 +81,44 @@
                 <div class="row mt-3 d-flex justify-content-between">
                     <div class="col-md-4">
                         <button id="refreshButton" class="btn btn-primary">Обновить таблицу</button>
-                        <button id="schedulerButton" class="btn btn-success" onclick="toggleScheduler()">
-                            <#if startedTradingSessions == true>Остановить торговые сессии<#else>Запустить торговые сессии</#if>
-                        </button>
+                        <#if game.status != 'FINISHED'>
+                            <button id="schedulerButton" class="btn btn-success" onclick="toggleScheduler()">
+                                <#if startedTradingSessions == true>Остановить торговые сессии<#else>Запустить торговые сессии</#if>
+                            </button>
+                            <form method="post" action="/game/${game.id}/finish">
+                                <button id="finishGame" class="btn btn-primary">
+                                    Завершить игру
+                                </button>
+                            </form>
+                        <#else>
+                            <table style="margin-top: 25px" id="dataTable" class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Имя</th>
+                                    <th>Баланс</th>
+                                    <th>Сумма инвестиционного кредита</th>
+                                    <th>Количество продукции</th>
+                                    <th>Цена(шт)</th>
+                                    <th>Себестоимость(шт)</th>
+                                    <th>Ассортимент</th>
+                                    <th>Индекс качества</th>
+                                    <th>Мощность производства(ед/сутки)</th>
+                                    <th>Число дней выпуска продукции</th>
+                                    <th>День начала рекламы</th>
+                                    <th>День завершения рекламы</th>
+                                    <th>Стоимость рекламы</th>
+                                    <th>Индекс интенсивности рекламы</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </#if>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
     <footer class="footer d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">

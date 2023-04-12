@@ -62,9 +62,12 @@
         <div class="col-4">
             <div class="profile">
                 <div style="text-align: center;">
-                    <img class="photo" width="320" height="320"
-                         src="https://png.pngtree.com/png-vector/20190729/ourlarge/pngtree-avatar-user-basic-blue-icon-on-abstract-cloud-background-png-image_1624568.jpg"
+                    <img class="photo" width="320" height="320" style="border-radius: 50%"
+                         src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild3032-3831-4363-a263-653865336130__clip-school-assignme.png"
                          alt="">
+                    <#--                    <img class="photo" width="320" height="320"-->
+                    <#--                         src="https://png.pngtree.com/png-vector/20190729/ourlarge/pngtree-avatar-user-basic-blue-icon-on-abstract-cloud-background-png-image_1624568.jpg"-->
+                    <#--                         alt="">-->
 
                     <p class="fw-bold h4 mt-3">Имя: ${account.fullName!}</p>
                     <p class="fw-bold h4 mt-3">Почта: ${account.email!}</p>
@@ -94,7 +97,7 @@
                     </table>
                 </div>
                 <div class="text-center" style="margin-top: 10px">
-                    <button id="myGamesButton" onclick="loadMyGames()" class="btn btn-primary">Обновить мои игры
+                    <button id="myGamesButton" onclick="loadMyGames()" class="btn btn-primary">Обновить
                     </button>
                 </div>
             </div>

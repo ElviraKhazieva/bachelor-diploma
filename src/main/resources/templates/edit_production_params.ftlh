@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head xmlns="http://www.w3.org/1999/html">
-    <title>Открытие предприятия</title>
+    <title>Изменение параметров предприятия</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -42,11 +42,13 @@
 
 <div class="container" style="margin: 100px auto auto;">
     <form class="row g-3 color-rect-border" method="post" action="/game/${game.id}/production-parameters">
-        <h1 style="text-align: center">Определите параметры открываемого предприятия</h1>
+        <h1 style="text-align: center">Определите новые параметры производства</h1>
+        <h4 style="margin-top: 25px">Ваш баланс: ${balance}</h4>
         <div class="row g-3">
-            <h4 style="margin-top: 25px">Параметры производимой продукции:</h4>
+            <h4 style="margin-top: 10px">Параметры производимой продукции:</h4>
             <div class="col-md-4">
-                <label for="productCount" class="form-label">Количество продукции</label>
+                <label for="productCount" onchange="calculateMaxOfAdvertisingDays()" class="form-label">Количество
+                    продукции</label>
                 <input type="number" class="form-control" min="1" name="productCount" id="productCount" value="1">
             </div>
             <div class="col-md-4">
@@ -64,7 +66,8 @@
                 <input type="number" class="form-control" min="0" step="any" name="price" id="price" value="0">
             </div>
             <div class="col-md-6">
-                <label for="productionCapacityPerDay" class="form-label">Мощность производства(ед/сутки)</label>
+                <label for="productionCapacityPerDay" onchange="calculateMaxOfAdvertisingDays()" class="form-label">Мощность
+                    производства(ед/сутки)</label>
                 <input type="number" class="form-control" min="1" name="productionCapacityPerDay"
                        id="productionCapacityPerDay" value="1">
             </div>
@@ -73,32 +76,51 @@
         <div class="row g-3">
             <h4>Параметры рекламы:</h4>
             <div class="col-md-6">
-                <label for="advertisingIntensityIndex" class="form-label">Индекс интенсивности рекламы</label>
+                <label for="advertisingIntensityIndex" onchange="setZeroAdvertisingDays()" class="form-label">Индекс
+                    интенсивности рекламы</label>
                 <input type="number" class="form-control" min="0" max="7" name="advertisingIntensityIndex"
                        id="advertisingIntensityIndex" value="0">
             </div>
             <div class="col-md-6">
-                <label for="advertisingDays" class="form-label">Количество дней рекламы</label>
-                <input type="number" class="form-control" min="0" max="" name="advertisingDays" id="advertisingDays" value="0">
+                <label for="advertisingDays" onchange="setZeroAdvertisingIntensityIndex()" class="form-label">Количество
+                    дней рекламы</label>
+                <input type="number" class="form-control" min="0" max="" name="advertisingDays" id="advertisingDays"
+                       value="0">
             </div>
         </div>
 
         <div class="row g-3">
-            <h4>Вычисленные экономические показатели:</h4>
-            <div class="col-md-4">
-                <label for="investmentCreditAmount" class="form-label">Сумма инвестиционного кредита</label>
-                <input type="number" class="form-control" min="0" step="any" name="investmentCreditAmount"
-                       id="investmentCreditAmount">
+            <h4>Рассчитываемые экономические показатели:</h4>
+            <div class="col-md-6">
+                <label for="productionCosts" class="form-label">Сумма затрат на производство</label>
+                <input value="0" type="number" class="form-control" min="0" step="any" name="productionCosts"
+                       id="productionCosts">
+            </div>
+            <div class="col-md-6">
+                <label for="businessCreditAmount" class="form-label">Сумма оборотного(бизнес) кредита</label>
+                <input type="number" value="0" class="form-control" step="any" min="0" value="0"
+                       name="businessCreditAmount" id="businessCreditAmount">
             </div>
             <div class="col-md-4">
                 <label for="advertisingCost" class="form-label">Затраты на рекламу</label>
-                <input type="number" class="form-control" step="any" name="advertisingCost" id="advertisingCost">
+                <input type="number" value="0" class="form-control" step="any" name="advertisingCost"
+                       id="advertisingCost">
             </div>
             <div class="col-md-4">
                 <label for="costPrice" class="form-label">Себестоимость единицы продукции</label>
-                <input type="number" class="form-control" step="any" min="0" name="costPrice" id="costPrice">
+                <input type="number" value="0" class="form-control" step="any" min="0" name="costPrice" id="costPrice">
+            </div>
+
+            <div class="col-md-4">
+                <label for="timeToMarket" class="form-label">Число дней выпуска продукции</label>
+                <input value="0" type="number" class="form-control" min="0" name="timeToMarket" id="timeToMarket">
             </div>
         </div>
+        <#if errorMessage??>
+            <div class="alert alert-danger" role="alert">
+                ${errorMessage}
+            </div>
+        </#if>
 
         <div style="text-align: center" class="col-12">
             <button style="text-align: center" type="submit" class="btn btn-primary btn-lg">Отправить</button>
@@ -123,8 +145,10 @@
     var costPrice = document.getElementById('costPrice');
     costPrice.addEventListener('input', calculate);
 
-    var investmentCreditAmount = document.getElementById('investmentCreditAmount');
-    investmentCreditAmount.addEventListener('input', calculate);
+    var productionCosts = document.getElementById('productionCosts');
+    productionCosts.addEventListener('input', calculate);
+    productionCosts.addEventListener('input', calculateBusinessCreditAmount);
+    productionCosts.addEventListener('blur', calculateBusinessCreditAmount);
 
     var productionCapacityPerDay = document.getElementById('productionCapacityPerDay');
     productionCapacityPerDay.addEventListener('input', calculate);
@@ -133,13 +157,24 @@
     advertisingIntensityIndex.addEventListener('input', calculate);
     var advertisingDays = document.getElementById('advertisingDays');
     advertisingDays.addEventListener('input', calculate);
-
+    var businessCreditAmount = document.getElementById('businessCreditAmount');
     var M = 10;
 
-    // количества дней рекламы циклом производства (time to market)
+    //ограничение количества дней рекламы циклом производства (time to market)
     function calculateMaxOfAdvertisingDays() {
-        let maxAdvertisingDays = Math.ceil(Number(productCount.value) / (Math.ceil(productionCapacityPerDay.value / M) * M))
-        advertisingDays.setAttribute("max", maxAdvertisingDays.toString())
+        let timeToMarket = Math.ceil(Number(productCount.value) / (Math.ceil(Number(productionCapacityPerDay.value) / M) * M));
+        document.getElementById('timeToMarket').value = timeToMarket.toString();
+        advertisingDays.setAttribute("max", timeToMarket.toString())
+    }
+
+    function calculateBusinessCreditAmount() {
+        const balance = "${balance}".replace(/\s/g, '').replace(/,/, '.');
+        let minBusinessCreditAmount = (Number(productionCosts.value) - Number(balance)).toFixed(2);
+        if (Number(minBusinessCreditAmount) < 0) {
+            minBusinessCreditAmount = '0'
+        }
+        businessCreditAmount.value = minBusinessCreditAmount;
+        businessCreditAmount.setAttribute("min", minBusinessCreditAmount);
     }
 
     var advertisingCost = document.getElementById('advertisingCost');
@@ -166,7 +201,8 @@
         var advertisement = (Number(baseAdvertisementPrice) * Number(advertisingIntensityIndex.value) * Number(advertisingDays.value)).toFixed(2);
         advertisingCost.value = advertisement
         var initialProduction = (Number(productCount.value) * Number(costPrice.value)).toFixed(2)
-        investmentCreditAmount.value = (Number(productionCreation) + Number(advertisement) + Number(initialProduction)).toFixed(2);
+        productionCosts.value = (Number(productionCreation) + Number(advertisement) + Number(initialProduction)).toFixed(2);
+        calculateBusinessCreditAmount()
     }
 
 </script>

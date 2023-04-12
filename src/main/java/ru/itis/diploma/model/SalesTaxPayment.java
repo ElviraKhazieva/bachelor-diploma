@@ -17,20 +17,15 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-//по ней можно определять выручку производителей
-public class TradingSessionResults {
-
+public class SalesTaxPayment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer tradeDate;
+    private BigDecimal amount;
 
     @ManyToOne
     private Manufacturer manufacturer;
 
-    private Integer productNumber; //количество проданных товаров
-
-    private BigDecimal price; //цена товара
-
+    private Integer date;
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import ru.itis.diploma.dto.AccountDto;
 import ru.itis.diploma.dto.CreateGameDto;
 import ru.itis.diploma.dto.GameDto;
 import ru.itis.diploma.model.Account;
@@ -20,7 +21,8 @@ import ru.itis.diploma.service.ManufacturerService;
 import java.util.Comparator;
 import java.util.List;
 
-import static ru.itis.diploma.model.GameStatus.STARTED;
+import static ru.itis.diploma.model.enums.GameStatus.FINISHED;
+import static ru.itis.diploma.model.enums.GameStatus.STARTED;
 
 @Controller
 @RequiredArgsConstructor
@@ -51,8 +53,14 @@ public class GameController {
                               Model model) {
         var game = gameService.getGameById(id);
         model.addAttribute("game", game);
+        AccountDto account = accountService.getByEmail(userDetails.getUsername());
+        model.addAttribute("account", account);
 
         if (Account.Role.ADMIN.equals(userDetails.getAccount().getRole())) {
+            if (FINISHED.equals(game.getStatus())) {
+                System.out.println(gameService.getGameResults(game));
+                model.addAttribute("gameResults", gameService.getGameResults(game));
+            }
             model.addAttribute("startedTradingSessions", STARTED.equals(game.getStatus()));
             model.addAttribute("manufacturers", manufacturerService.getGameManufacturers(id));
             return "game_admin";
@@ -62,8 +70,17 @@ public class GameController {
         if (manufacturer.isEnteredInitialProductionParameters()) {
             return "game";
         } else {
-            return "initial_product_params_form";
+            return "enter_initial_production_params";
         }
+    }
+
+    @PostMapping("/game/{id}/finish")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String finishGame(@PathVariable Long id,
+                             @AuthenticationPrincipal AccountUserDetails userDetails,
+                             Model model) {
+        gameService.finishGame(id);
+        return "redirect:/game/" + id;
     }
 
     @ResponseBody

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,14 +29,16 @@ public class Manufacturer {
     @ManyToOne
     private Account account;
 
-    private BigDecimal income; //высчитывается в конце игры по результатам
+//    private BigDecimal income; //высчитывается в конце игры по результатам
 
     private BigDecimal balance;
 
-//    private BigDecimal debt = BigDecimal.ZERO; //текущий долг todo: что за долги? расходы ведь вычитаем сразу из баланса? не нужно ли поле под расходы - суммировать траты?
-
     private BigDecimal investmentCreditAmount; //величина инвестиционного кредита(стартоый капитал)
 
+    private BigDecimal investmentCreditDebt;
+
     private boolean enteredInitialProductionParameters;
+
+    private Boolean investmentCreditIsRepaid;
 
 }

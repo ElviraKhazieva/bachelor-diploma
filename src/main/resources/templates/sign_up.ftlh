@@ -56,8 +56,10 @@
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-9 col-lg-6 col-xl-5">
-                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+                <img src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild3937-3165-4638-b563-346662343136__clip-online-business.png"
                      class="img-fluid" alt="Sample image">
+                <#--                <img src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild6630-3334-4334-b536-656466636162__clip-businessman-wor.png"-->
+                <#--                     width="1550" height="1550" class="img-fluid" alt="Sample image">-->
                 <#--                <img src="https://www.advgazeta.ru/upload/iblock/42d/kak_predprinimatelyam_nachat_2023_god.jpg"-->
                 <#--                     class="img-fluid" alt="Sample image">-->
             </div>

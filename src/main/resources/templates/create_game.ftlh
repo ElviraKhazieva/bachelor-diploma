@@ -48,7 +48,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid h-custom" style="margin-top: 15px">
+    <div class="container-fluid h-custom" style="margin-top: 30px; margin-bottom: 320px">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
                 <form action="/game" method="post">
@@ -72,6 +72,11 @@
                                name="interestRateInvestmentCredit"
                                placeholder="Процентная ставка инвестиционного кредита">
                     </div>
+                    <div class="form-outline mb-4">
+                        <input class="form-control form-control-lg" type="number" step="any"
+                               name="investmentCreditTermMonths"
+                               placeholder="Срок инвестиционного кредита в месяцах">
+                    </div>
 
                     <div class="form-outline mb-4">
                         <input class="form-control form-control-lg" type="number" step="any"
@@ -90,7 +95,7 @@
 
                     <div class="form-outline mb-4">
                         <input class="form-control form-control-lg" type="number" step="any" name="productPower"
-                               placeholder="Сумма средств, необходимых для производства еще одной единицы продукции">
+                               placeholder="Цена создания единицы мощности производства">
                     </div>
 
                     <div class="form-outline mb-4">
@@ -99,14 +104,40 @@
                                placeholder="Цена рекламы">
                     </div>
 
-                    <div class="form-outline mb-4">
-                        <input class="form-control form-control-lg" type="number" name="requiredQuantity"
-                               placeholder="Спрос покупателя(необходимое количество продукции)">
+                    <#--                    <div class="form-outline mb-4">-->
+                    <#--                        <input class="form-control form-control-lg" type="number" name="requiredQuantity"-->
+                    <#--                               placeholder="Спрос покупателя(необходимое количество продукции)">-->
+                    <#--                    </div>-->
+
+                    <h5>Выберите веса для модели покупателя:</h5>
+                    <small style="margin-top: 10px">Чем выше вес, тем большее влияние будет оказывать соответствующий
+                        параметр для покупателя при выборе производителя.</small>
+                    <div style="margin-top: 10px">
+                        <div class="form-outline mb-4">
+                            <input class="form-control form-control-lg validate-weights" required type="number" min="0"
+                                   max="1" step="0.01"
+                                   id="assortmentWeight" name="assortmentWeight"
+                                   placeholder="Вес ассортимента">
+                        </div>
+                        <div class="form-outline mb-4">
+                            <input class="form-control form-control-lg validate-weights" required type="number" min="0"
+                                   max="1" step="0.01"
+                                   id="qualityWeight" name="qualityWeight"
+                                   placeholder="Вес качества">
+                        </div>
+                        <div class="form-outline mb-4">
+                            <input class="form-control form-control-lg validate-weights" required type="number" min="0"
+                                   max="1" step="0.01"
+                                   id="advertisementWeight" name="advertisementWeight"
+                                   placeholder="Вес качества">
+                        </div>
+                        <div class="error" style="color: red" id="error"></div>
                     </div>
 
-                    <div class="form-outline mb-3">
-                        <p class="lead">Выберите участников игры из списка:</p>
-                        <select id="accounts" class="form-control form-control-lg" multiple name="accountIds">
+
+                    <div class="form-outline mb-3" style="margin-top: 10px">
+                        <h5>Выберите участников игры из списка:</h5>
+                        <select id="accounts" class="form-control form-control-lg" multiple required name="accountIds">
                             <#list accounts as account>
                                 <option value="${account.id}">${account.fullName!}</option>
                             </#list>
@@ -140,5 +171,34 @@
         </div>
     </footer>
 </section>
+
+<script>
+    const assortmentWeightInput = document.getElementById('assortmentWeight');
+    const qualityWeightInput = document.getElementById('qualityWeight');
+    const advertisementWeightInput = document.getElementById('advertisementWeight');
+    const error = document.getElementById('error');
+    const errorElement = document.querySelector('.error');
+
+    const validateInputs = () => {
+        const assortmentWeight = +assortmentWeightInput.value || 0;
+        const qualityWeight = +qualityWeightInput.value || 0;
+        const advertisementWeight = +advertisementWeightInput.value || 0;
+        const sum = assortmentWeight + qualityWeight + advertisementWeight;
+
+        if (sum !== 1) {
+            error.innerHTML = 'Сумма весов должна быть равна 1';
+            error.classList.add('text-danger');
+            return false;
+        } else {
+            error.innerHTML = '';
+            error.classList.remove('text-danger');
+            return true;
+        }
+    }
+
+    assortmentWeightInput.addEventListener('input', validateInputs);
+    qualityWeightInput.addEventListener('input', validateInputs);
+    advertisementWeightInput.addEventListener('input', validateInputs);
+</script>
 </body>
 </html>

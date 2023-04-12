@@ -6,9 +6,9 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import ru.itis.diploma.model.GameStatus;
-import ru.itis.diploma.model.Manufacturer;
+import ru.itis.diploma.model.enums.GameStatus;
 import ru.itis.diploma.service.BuyerService;
+import ru.itis.diploma.service.CronService;
 import ru.itis.diploma.service.GameService;
 import ru.itis.diploma.service.ManufacturerService;
 
@@ -21,6 +21,7 @@ public class TradingSessionController {
 
     private final GameService gameService;
     private final ManufacturerService manufacturerService;
+    private final CronService cronService;
     private final BuyerService buyerService;
     private final TaskScheduler taskScheduler;
 
@@ -35,12 +36,7 @@ public class TradingSessionController {
             gameService.save(game);
 
             PeriodicTrigger trigger = new PeriodicTrigger(timeUnit, TimeUnit.MINUTES);
-            var manufacturerIds = manufacturerService.getGameManufacturers(game.getId()).stream()
-                .map(Manufacturer::getId)
-                .toList();
-            buyerService.setRequiredQuantity(game.getRequiredQuantity());
-            scheduledTask = taskScheduler.schedule(() -> buyerService.makePurchases(manufacturerIds), trigger);
-
+            scheduledTask = taskScheduler.schedule(() -> cronService.doDaysActivities(game), trigger);
         }
         return "redirect:/game/" + gameId;
     }

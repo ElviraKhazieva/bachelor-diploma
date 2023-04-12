@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.itis.diploma.model.Game;
-import ru.itis.diploma.model.GameStatus;
+import ru.itis.diploma.model.enums.GameStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

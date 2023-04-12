@@ -1,4 +1,4 @@
-package ru.itis.diploma.model;
+package ru.itis.diploma.model.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

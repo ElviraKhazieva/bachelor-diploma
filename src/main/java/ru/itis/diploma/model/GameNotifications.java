@@ -10,27 +10,22 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import java.math.BigDecimal;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-//по ней можно определять выручку производителей
-public class TradingSessionResults {
-
+public class GameNotifications {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer tradeDate;
-
     @ManyToOne
     private Manufacturer manufacturer;
 
-    private Integer productNumber; //количество проданных товаров
+    private Integer date;
 
-    private BigDecimal price; //цена товара
+    private String message;
 
 }

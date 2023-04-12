@@ -22,15 +22,23 @@ public class CreateGameDto {
 
     private BigDecimal interestRateBusinessCredit;
 
+    private BigDecimal investmentCreditTermMonths;
+
     private BigDecimal salesTax;
 
     private BigDecimal baseCostPrice;
 
     private BigDecimal baseAdvertisementPrice;
 
+    //Сумма средств, необходимых для производства еще одной единицы продукции
     private BigDecimal productPower; // цена создания единицы мощности производства (цена станка)
 
-    private Integer requiredQuantity;
+    //    private Integer requiredQuantity;
+    private BigDecimal assortmentWeight;
+
+    private BigDecimal qualityWeight;
+
+    private BigDecimal advertisementWeight;
 
     private List<Long> accountIds;
 

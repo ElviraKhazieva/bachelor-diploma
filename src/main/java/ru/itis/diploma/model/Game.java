@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.itis.diploma.model.enums.GameStatus;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 @Entity
 public class Game {
 
-    public static int currentDay;
+    public static int currentDay = 163; //todo: вернуть на 0
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +41,8 @@ public class Game {
 
     private BigDecimal interestRateInvestmentCredit; // процентная ставка на стартовый капитал(инвестиционный кредит - для организации производства(оборудование, помещение))
 
+    private BigDecimal investmentCreditTermMonths; // cрок инвестиционного кредита в месяцах
+
     private BigDecimal interestRateBusinessCredit; // процентная ставка на оборотные средства(оборотный кредит - на сырье для выпуска продукции)
 
     private BigDecimal salesTax; // налог с продаж
@@ -50,6 +53,12 @@ public class Game {
 
     private BigDecimal productPower; //сколько необходимо денег для того чтобы производить на единицу продукции больше
 
-    private Integer requiredQuantity; // спрос покупателя (то, сколько покупателю нужно купить) 15 ед нужно купить
+    private BigDecimal assortmentWeight;
+
+    private BigDecimal qualityWeight;
+
+    private BigDecimal advertisementWeight;
+
+//    private Integer requiredQuantity; // спрос покупателя (то, сколько покупателю нужно купить) 15 ед нужно купить
 
 }
