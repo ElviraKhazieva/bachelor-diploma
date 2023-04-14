@@ -3,9 +3,10 @@ package ru.itis.diploma.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.itis.diploma.dto.CommonProductionParameters;
-import ru.itis.diploma.dto.EditProductionParameters;
 import ru.itis.diploma.dto.InitialProductionParameters;
 import ru.itis.diploma.dto.ManufacturerFinancialStatus;
+import ru.itis.diploma.dto.ManufacturerParameters;
+import ru.itis.diploma.dto.NewProductionParameters;
 import ru.itis.diploma.model.Advertisement;
 import ru.itis.diploma.model.BusinessCreditPayment;
 import ru.itis.diploma.model.Game;
@@ -17,7 +18,9 @@ import ru.itis.diploma.repository.BusinessCreditPaymentRepository;
 import ru.itis.diploma.repository.InvestmentCreditPaymentRepository;
 import ru.itis.diploma.repository.ManufacturerRepository;
 import ru.itis.diploma.repository.ProductionParametersRepository;
+import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.ManufacturerService;
+import ru.itis.diploma.service.PaymentService;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -32,6 +35,7 @@ import java.util.Optional;
 public class ManufacturerServiceImpl implements ManufacturerService {
 
     private final ManufacturerRepository manufacturerRepository;
+    private final AccountService accountService;
     private final ProductionParametersRepository productionParametersRepository;
     private final AdvertisementRepository advertisementRepository;
     private final BusinessCreditPaymentRepository businessCreditPaymentRepository;
@@ -57,6 +61,41 @@ public class ManufacturerServiceImpl implements ManufacturerService {
         return manufacturerRepository.findByGame_Id(gameId);
     }
 
+    @Override
+    public List<ManufacturerParameters> getManufacturersActualProductionParameters(Long gameId) {
+        return getGameManufacturers(gameId).stream()
+            .map(manufacturer -> {
+                var account = accountService.getById(manufacturer.getAccount().getId());
+                var productionParameters = getActualProductionParameters(manufacturer.getId());
+                var advertisement = getActualAdvertisement(manufacturer.getId());
+                ManufacturerParameters manufacturerParameters = ManufacturerParameters.builder()
+                    .id(manufacturer.getId())
+                    .fullName(account.getFullName())
+                    .investmentCreditAmount(manufacturer.getInvestmentCreditAmount())
+                    .balance(manufacturer.getBalance())
+                    .build();
+                productionParameters.ifPresent(p -> {
+                    manufacturerParameters.setTimeToMarket(p.getTimeToMarket());
+                    manufacturerParameters.setCostPrice(p.getCostPrice());
+                    manufacturerParameters.setPrice(p.getPrice());
+                    manufacturerParameters.setProductCount(p.getProductCount());
+                    manufacturerParameters.setAssortment(p.getAssortment());
+                    manufacturerParameters.setProductionCapacityPerDay(p.getProductionCapacityPerDay());
+                    manufacturerParameters.setQualityIndex(p.getQualityIndex());
+                    manufacturerParameters.setBusinessCreditAmount(p.getBusinessCreditAmount());
+                    manufacturerParameters.setInterestRateBusinessCredit(p.getInterestRateBusinessCredit());
+                    manufacturerParameters.setStartDate(p.getStartDate());
+                });
+                advertisement.ifPresent(a -> {
+                    manufacturerParameters.setAdvertisingStartDate(a.getStartDate());
+                    manufacturerParameters.setAdvertisingEndDate(a.getEndDate());
+                    manufacturerParameters.setAdvertisingIntensityIndex(a.getIntensityIndex());
+                    manufacturerParameters.setAdvertisingCost(a.getCost());
+                });
+                return manufacturerParameters;
+            }).toList();
+    }
+
     /**
      * Сумма инвестиционного редита вычисляется на фронте по формуле:
      * Сумма инвестиционного кредита = Создание производства + Реклама(EconomicIndicatorsCalculator) + начальное пр-во
@@ -66,7 +105,7 @@ public class ManufacturerServiceImpl implements ManufacturerService {
      * Баланс = 0, тк потратили весь инвестиционный кредит
      */
     @Override
-    public void enterInitialProductionParameters(InitialProductionParameters initialProductionParameters, Long accountId, Long gameId) {
+    public void defineInitialProductionParameters(InitialProductionParameters initialProductionParameters, Long accountId, Long gameId) {
         var manufacturer = getManufacturerByAccountIdAndGameId(accountId, gameId);
         manufacturer.setInvestmentCreditAmount(initialProductionParameters.getInvestmentCreditAmount());
         manufacturer.setEnteredInitialProductionParameters(true);
@@ -74,8 +113,8 @@ public class ManufacturerServiceImpl implements ManufacturerService {
         manufacturerRepository.save(manufacturer);
 
         saveAdvertisement(manufacturer, initialProductionParameters);
-        saveProductParameters(manufacturer, initialProductionParameters);
-
+        var productionParameters = saveProductParameters(manufacturer, initialProductionParameters);
+        productionParameters.setBusinessCreditAmount(BigDecimal.ZERO);
         var payment = InvestmentCreditPayment.builder()
             .manufacturer(manufacturer)
             .principalPayment(BigDecimal.ZERO)
@@ -87,26 +126,29 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     }
 
     @Override
-    public void editProductionParameters(EditProductionParameters editProductionParameters, Long accountId, Long gameId) {
-        var manufacturer = getManufacturerByAccountIdAndGameId(accountId, gameId);
-        // разница между суммой бизнес кредита и затратами на производство(нужны только для помощи с определением суммы бизнес-кредита?)
-        manufacturer.setBalance(manufacturer.getBalance().add(editProductionParameters.getBusinessCreditAmount().subtract(editProductionParameters.getProductionCosts())));
-        manufacturerRepository.save(manufacturer);
-        saveAdvertisement(manufacturer, editProductionParameters);
-        var productionParameters = saveProductParameters(manufacturer, editProductionParameters);
-        productionParameters.setBusinessCreditAmount(editProductionParameters.getBusinessCreditAmount());
+    public void defineNewProductionParameters(NewProductionParameters newProductionParameters, Long accountId, Game game) {
+        var manufacturer = getManufacturerByAccountIdAndGameId(accountId, game.getId());
 
+        // разница между суммой бизнес кредита и затратами на производство(нужны только для помощи с определением суммы бизнес-кредита?)
+        manufacturer.setBalance(manufacturer.getBalance().add(newProductionParameters.getBusinessCreditAmount().subtract(newProductionParameters.getProductionCosts())));
+        manufacturerRepository.save(manufacturer);
+        saveAdvertisement(manufacturer, newProductionParameters);
+        var productionParameters = saveProductParameters(manufacturer, newProductionParameters);
+        productionParameters.setBusinessCreditAmount(newProductionParameters.getBusinessCreditAmount());
         if (productionParameters.getBusinessCreditAmount().compareTo(BigDecimal.ZERO) > 0) {
             var payment = BusinessCreditPayment.builder()
                 .productionParameters(productionParameters)
-                .principalPayment(BigDecimal.ZERO)
-                .interestAmount(BigDecimal.ZERO)
+                .amount(BigDecimal.ZERO)
+                .nextAmount(productionParameters.getBusinessCreditAmount()
+                    .add(PaymentService.calculateBusinessCreditInterestAmount(
+                        productionParameters.getBusinessCreditAmount(),
+                        game.getInterestRateBusinessCredit(),
+                        productionParameters.getTimeToMarket())))
+//                .principalPayment(BigDecimal.ZERO)
+//                .interestAmount(BigDecimal.ZERO)
                 .nextDate(Game.currentDay + productionParameters.getTimeToMarket() * 2)
                 .build();
             businessCreditPaymentRepository.save(payment);
-            productionParameters.setBusinessCreditIsRepaid(false);
-        } else {
-            productionParameters.setBusinessCreditIsRepaid(true);
         }
         productionParametersRepository.save(productionParameters);
 
@@ -123,7 +165,7 @@ public class ManufacturerServiceImpl implements ManufacturerService {
             .balance(manufacturer.getBalance())
             .todayRevenue(MANUFACTURER_REVENUE.getOrDefault(manufacturer.getId(), BigDecimal.ZERO))
             .investmentCreditDebt(calculateManufacturerInvestmentCreditDebt(manufacturer))
-            .businessCreditDebt(calculateManufacturerBusinessCreditDebt(actualProductionParameters))
+            .businessCreditDebt(calculateManufacturerBusinessCreditDebt(manufacturer))
             .timeToMarketEndDay(actualProductionParameters.getStartDate() + actualProductionParameters.getTimeToMarket())
             .activeManufacturingCycle(activeManufacturingCycle)
             .build();
@@ -142,14 +184,49 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     }
 
     @Override
-    public BigDecimal calculateManufacturerBusinessCreditDebt(ProductionParameters productionParameters) {
-        BigDecimal debt = productionParameters.getBusinessCreditAmount().subtract(
-            businessCreditPaymentRepository.findAllByProductionParametersId(productionParameters.getId()).stream()
-                .map(BusinessCreditPayment::getPrincipalPayment)
-                .filter(Objects::nonNull)
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-        // .add(productionParameters.getBusinessCreditDebt());
-        return productionParameters.getBusinessCreditDebt() != null ? debt.add(productionParameters.getBusinessCreditDebt()) : debt;
+    public BigDecimal calculateManufacturerBusinessCreditDebt(Manufacturer manufacturer) {
+        List<ProductionParameters> manufacturerProductionParameters = productionParametersRepository.findByManufacturerId(manufacturer.getId());
+        return businessCreditPaymentRepository.findAllByProductionParametersIdInAndNextDateAfter(
+                manufacturerProductionParameters.stream()
+                    .map(ProductionParameters::getId)
+                    .toList(),
+                Game.currentDay).stream()
+            .map(BusinessCreditPayment::getNextAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+//        BigDecimal debt = productionParameters.getBusinessCreditAmount().subtract(
+//            businessCreditPaymentRepository.findAllByProductionParametersId(productionParameters.getId()).stream()
+////                .map(BusinessCreditPayment::getPrincipalPayment)
+//                .map(BusinessCreditPayment::getAmount)
+//                .filter(Objects::nonNull)
+//                .reduce(BigDecimal.ZERO, BigDecimal::add));
+//        // .add(productionParameters.getBusinessCreditDebt());
+//        return productionParameters.getBusinessCreditDebt() != null ? debt.add(productionParameters.getBusinessCreditDebt()) : debt;
+    }
+
+    @Override
+    public List<ManufacturerParameters> getAllProductionParameters(Manufacturer manufacturer) {
+        return productionParametersRepository.findByManufacturerId(manufacturer.getId()).stream()
+            .map(productionParameters -> {
+                var advertisement = advertisementRepository.findByManufacturerIdAndStartDate(
+                    manufacturer.getId(), productionParameters.getStartDate() + 1);
+                return ManufacturerParameters.builder()
+                    .startDate(productionParameters.getStartDate())
+                    .timeToMarket(productionParameters.getTimeToMarket())
+                    .costPrice(productionParameters.getCostPrice())
+                    .price(productionParameters.getPrice())
+                    .productCount(productionParameters.getProductCount())
+                    .assortment(productionParameters.getAssortment())
+                    .productionCapacityPerDay(productionParameters.getProductionCapacityPerDay())
+                    .qualityIndex(productionParameters.getQualityIndex())
+                    .businessCreditAmount(productionParameters.getBusinessCreditAmount())
+                    .interestRateBusinessCredit(productionParameters.getInterestRateBusinessCredit())
+                    .advertisingStartDate(advertisement.getStartDate())
+                    .advertisingEndDate(advertisement.getEndDate())
+                    .advertisingIntensityIndex(advertisement.getIntensityIndex())
+                    .advertisingCost(advertisement.getCost())
+                    .build();
+            }).sorted(Comparator.comparing(ManufacturerParameters::getStartDate).reversed())
+            .toList();
     }
 
     @Override
@@ -181,8 +258,9 @@ public class ManufacturerServiceImpl implements ManufacturerService {
             .assortment(productionParameters.getAssortment())
             .qualityIndex(productionParameters.getQualityIndex())
             .productionCapacityPerDay(productionParameters.getProductionCapacityPerDay())
-            .businessCreditAmount(BigDecimal.ZERO)
-            .businessCreditDebt(BigDecimal.ZERO)
+            .interestRateBusinessCredit(manufacturer.getGame().getInterestRateBusinessCredit())
+
+//            .businessCreditDebt(BigDecimal.ZERO)
             .startDate(Game.currentDay)
             .timeToMarket(productionParameters.getTimeToMarket())
             .build();

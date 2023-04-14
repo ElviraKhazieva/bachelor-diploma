@@ -8,5 +8,7 @@ import java.util.List;
 public interface BusinessCreditPaymentRepository extends JpaRepository<BusinessCreditPayment, Long> {
     List<BusinessCreditPayment> findAllByProductionParametersIdInAndNextDate(List<Long> productionParametersIds, Integer nextDate);
 
+    List<BusinessCreditPayment> findAllByProductionParametersIdInAndNextDateAfter(List<Long> productionParametersIds, Integer nextDate);
+
     List<BusinessCreditPayment> findAllByProductionParametersId(Long productionParametersId);
 }

@@ -7,7 +7,6 @@ import ru.itis.diploma.dto.GameDto;
 import ru.itis.diploma.exception.EntityNotFoundException;
 import ru.itis.diploma.model.Game;
 import ru.itis.diploma.model.Manufacturer;
-import ru.itis.diploma.model.ProductionParameters;
 import ru.itis.diploma.model.enums.GameStatus;
 import ru.itis.diploma.repository.GameRepository;
 import ru.itis.diploma.repository.ManufacturerRepository;
@@ -119,9 +118,8 @@ public class GameServiceImpl implements GameService {
     }
 
     private BigDecimal calculateFinishFinancialStatus(Manufacturer manufacturer) {
-        ProductionParameters productionParameters = manufacturerService.getActualProductionParameters(manufacturer.getId()).get();
         var debts = manufacturerService.calculateManufacturerInvestmentCreditDebt(manufacturer)
-            .add(manufacturerService.calculateManufacturerBusinessCreditDebt(productionParameters));
+            .add(manufacturerService.calculateManufacturerBusinessCreditDebt(manufacturer));
         return manufacturer.getBalance().subtract(debts);
     }
 

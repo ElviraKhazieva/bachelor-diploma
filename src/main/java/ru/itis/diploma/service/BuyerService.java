@@ -12,7 +12,6 @@ import ru.itis.diploma.model.TradingSessionResults;
 import ru.itis.diploma.repository.ManufacturerRepository;
 import ru.itis.diploma.repository.TradingSessionResultsRepository;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,6 @@ public class BuyerService {
         Производители отсортированы в порядке, у кого отношение цена/качество лучше
         Покупатель пытается купить мин(требуемое количество, количество товаров у пр-ля) количество товаров у каждого производителя в отсортированном списке
      */
-    @Transactional
     public void makePurchases(List<ProductionParameters> productionParametersList) {
         var requiredQuantity = random.nextInt(1 + MANUFACTURER_CURRENT_PRODUCT_COUNT.values().stream().reduce(0, Integer::sum));
         List<TradingSessionResults> tradingSessionResultsList = new ArrayList<>();

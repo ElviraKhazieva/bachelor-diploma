@@ -15,7 +15,6 @@ import ru.itis.diploma.repository.ProductionParametersRepository;
 import ru.itis.diploma.repository.SalesTaxPaymentRepository;
 import ru.itis.diploma.repository.TradingSessionResultsRepository;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ public class PaymentService {
     private final ManufacturerService manufacturerService;
     private final TradingSessionResultsRepository tradingSessionResultsRepository;
 
-    @Transactional
     public void makePayments(Game game) {
         makeSalesTaxPayments(game);
         makeInvestmentCreditPayments(game);
@@ -82,72 +80,108 @@ public class PaymentService {
                     .toList(),
                 Game.currentDay);
             for (BusinessCreditPayment payment : payments) {
+                var nextAmount = payment.getNextAmount();
                 var paymentProductionParameters = payment.getProductionParameters();
-                if (!paymentProductionParameters.getBusinessCreditIsRepaid()) {
-                    var principalPaymentsSum = businessCreditPaymentRepository
-                        .findAllByProductionParametersId(paymentProductionParameters.getId())
-                        .stream()
-                        .map(BusinessCreditPayment::getPrincipalPayment)
-                        .filter(Objects::nonNull)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                    if (principalPaymentsSum.compareTo(paymentProductionParameters.getBusinessCreditAmount()) < 0) {
-                        //todo: проверка суммы платежей по бизнес кредиту, если она 0, то списываем всю сумму бизнес кредита,
-                        // еcли не 0, то разницу между суммой бизнес кредита и суммой выплат
-                        var principalPayment = principalPaymentsSum.compareTo(BigDecimal.ZERO) == 0
-                            ? paymentProductionParameters.getBusinessCreditAmount()
-                            : paymentProductionParameters.getBusinessCreditAmount().subtract(principalPaymentsSum);
-                        var fullPrincipalPayment = principalPayment.add(paymentProductionParameters.getBusinessCreditDebt());
-
-                        var interestRateBusinessCredit = paymentProductionParameters.getInterestRateBusinessCredit() != null
-                            ? paymentProductionParameters.getInterestRateBusinessCredit()
-                            : game.getInterestRateBusinessCredit();
-                        var interestAmount = calculateBusinessCreditInterestAmount(
-                            fullPrincipalPayment,
-                            interestRateBusinessCredit,
-                            paymentProductionParameters.getTimeToMarket());
-
-                        var newPayment = BusinessCreditPayment.builder()
-                            .productionParameters(paymentProductionParameters)
-                            .date(Game.currentDay)
-                            .build();
-
-                        if (fullPrincipalPayment.add(interestAmount).compareTo(manufacturer.getBalance()) <= 0) {
-                            newPayment.setPrincipalPayment(fullPrincipalPayment);
-                            newPayment.setInterestAmount(interestAmount);
-                            manufacturer.setBalance(manufacturer.getBalance().subtract(interestAmount).subtract(fullPrincipalPayment));
-                            paymentProductionParameters.setBusinessCreditDebt(BigDecimal.ZERO);
-                        } else if (principalPayment.add(interestAmount).compareTo(manufacturer.getBalance()) <= 0) {
-                            newPayment.setPrincipalPayment(principalPayment);
-                            newPayment.setInterestAmount(interestAmount);
-                            manufacturer.setBalance(manufacturer.getBalance().subtract(interestAmount).subtract(principalPayment));
-                            paymentProductionParameters.setInterestRateBusinessCredit(paymentProductionParameters.getInterestRateBusinessCredit().add(BigDecimal.ONE));
-                        } else {
-                            if (interestAmount.compareTo(manufacturer.getBalance()) <= 0) {
-                                newPayment.setInterestAmount(interestAmount);
-                                newPayment.setPrincipalPayment(manufacturer.getBalance().subtract(interestAmount));
-                            } else {
-                                newPayment.setInterestAmount(manufacturer.getBalance());
-                                newPayment.setPrincipalPayment(BigDecimal.ZERO);
-                                paymentProductionParameters.setBusinessCreditDebt(
-                                    paymentProductionParameters.getBusinessCreditDebt()
-                                        .add(interestAmount.subtract(manufacturer.getBalance())));
-                            }
-                            manufacturer.setBalance(BigDecimal.ZERO);
-                            paymentProductionParameters.setInterestRateBusinessCredit(paymentProductionParameters.getInterestRateBusinessCredit().add(BigDecimal.ONE));
-                            payment.setNextDate(Game.currentDay + paymentProductionParameters.getTimeToMarket());
-                        }
-                        businessCreditPaymentRepository.save(newPayment);
-                        manufacturerRepository.save(manufacturer);
-                    } else {
-                        paymentProductionParameters.setBusinessCreditIsRepaid(true);
-                    }
+                var newPayment = BusinessCreditPayment.builder()
+                    .productionParameters(paymentProductionParameters)
+                    .date(Game.currentDay)
+                    .build();
+                if (nextAmount.compareTo(manufacturer.getBalance()) < 0) {
+                    newPayment.setAmount(nextAmount);
+                    manufacturer.setBalance(manufacturer.getBalance().subtract(nextAmount));
+                } else {
+                    newPayment.setAmount(manufacturer.getBalance());
+                    paymentProductionParameters.setInterestRateBusinessCredit(paymentProductionParameters.getInterestRateBusinessCredit().add(BigDecimal.ONE));
                     productionParametersRepository.save(paymentProductionParameters);
+                    var amount = nextAmount.subtract(manufacturer.getBalance());
+                    newPayment.setNextAmount(amount.add(calculateBusinessCreditInterestAmount(
+                        amount,
+                        paymentProductionParameters.getInterestRateBusinessCredit(),
+                        paymentProductionParameters.getTimeToMarket())));
+                    newPayment.setNextDate(Game.currentDay + paymentProductionParameters.getTimeToMarket());
+                    manufacturer.setBalance(BigDecimal.ZERO);
                 }
+                businessCreditPaymentRepository.save(newPayment);
+                manufacturerRepository.save(manufacturer);
             }
         }
-
     }
+//    private void makeBusinessCreditPayments(Game game) {
+//        var manufacturers = manufacturerService.getGameManufacturers(game.getId());
+//        for (Manufacturer manufacturer : manufacturers) {
+//            List<ProductionParameters> manufacturerProductionParameters = productionParametersRepository.findByManufacturerId(manufacturer.getId());
+//            List<BusinessCreditPayment> payments = businessCreditPaymentRepository.findAllByProductionParametersIdInAndNextDate(
+//                manufacturerProductionParameters.stream()
+//                    .map(ProductionParameters::getId)
+//                    .toList(),
+//                Game.currentDay);
+//            for (BusinessCreditPayment payment : payments) {
+//                var paymentProductionParameters = payment.getProductionParameters();
+//                if (!paymentProductionParameters.getBusinessCreditIsRepaid()) {
+//                    var principalPaymentsSum = businessCreditPaymentRepository
+//                        .findAllByProductionParametersId(paymentProductionParameters.getId())
+//                        .stream()
+//                        .map(BusinessCreditPayment::getPrincipalPayment)
+//                        .filter(Objects::nonNull)
+//                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//                    if (principalPaymentsSum.compareTo(paymentProductionParameters.getBusinessCreditAmount()) < 0) {
+//                        //todo: проверка суммы платежей по бизнес кредиту, если она 0, то списываем всю сумму бизнес кредита,
+//                        // еcли не 0, то разницу между суммой бизнес кредита и суммой выплат
+//                        var principalPayment = principalPaymentsSum.compareTo(BigDecimal.ZERO) == 0
+//                            ? paymentProductionParameters.getBusinessCreditAmount()
+//                            : paymentProductionParameters.getBusinessCreditAmount().subtract(principalPaymentsSum);
+//                        var fullPrincipalPayment = principalPayment.add(paymentProductionParameters.getBusinessCreditDebt());
+//
+//                        var interestRateBusinessCredit = paymentProductionParameters.getInterestRateBusinessCredit() != null
+//                            ? paymentProductionParameters.getInterestRateBusinessCredit()
+//                            : game.getInterestRateBusinessCredit();
+//                        var interestAmount = calculateBusinessCreditInterestAmount(
+//                            fullPrincipalPayment,
+//                            interestRateBusinessCredit,
+//                            paymentProductionParameters.getTimeToMarket());
+//
+//                        var newPayment = BusinessCreditPayment.builder()
+//                            .productionParameters(paymentProductionParameters)
+//                            .date(Game.currentDay)
+//                            .build();
+//
+//                        if (fullPrincipalPayment.add(interestAmount).compareTo(manufacturer.getBalance()) <= 0) {
+//                            newPayment.setPrincipalPayment(fullPrincipalPayment);
+//                            newPayment.setInterestAmount(interestAmount);
+//                            manufacturer.setBalance(manufacturer.getBalance().subtract(interestAmount).subtract(fullPrincipalPayment));
+//                            paymentProductionParameters.setBusinessCreditDebt(BigDecimal.ZERO);
+//                        } else if (principalPayment.add(interestAmount).compareTo(manufacturer.getBalance()) <= 0) {
+//                            newPayment.setPrincipalPayment(principalPayment);
+//                            newPayment.setInterestAmount(interestAmount);
+//                            manufacturer.setBalance(manufacturer.getBalance().subtract(interestAmount).subtract(principalPayment));
+//                            paymentProductionParameters.setInterestRateBusinessCredit(paymentProductionParameters.getInterestRateBusinessCredit().add(BigDecimal.ONE));
+//                        } else {
+//                            if (interestAmount.compareTo(manufacturer.getBalance()) <= 0) {
+//                                newPayment.setInterestAmount(interestAmount);
+//                                newPayment.setPrincipalPayment(manufacturer.getBalance().subtract(interestAmount));
+//                            } else {
+//                                newPayment.setInterestAmount(manufacturer.getBalance());
+//                                newPayment.setPrincipalPayment(BigDecimal.ZERO);
+//                                paymentProductionParameters.setBusinessCreditDebt(
+//                                    paymentProductionParameters.getBusinessCreditDebt()
+//                                        .add(interestAmount.subtract(manufacturer.getBalance())));
+//                            }
+//                            manufacturer.setBalance(BigDecimal.ZERO);
+//                            paymentProductionParameters.setInterestRateBusinessCredit(paymentProductionParameters.getInterestRateBusinessCredit().add(BigDecimal.ONE));
+//                            payment.setNextDate(Game.currentDay + paymentProductionParameters.getTimeToMarket());
+//                        }
+//                        businessCreditPaymentRepository.save(newPayment);
+//                        manufacturerRepository.save(manufacturer);
+//                    } else {
+//                        paymentProductionParameters.setBusinessCreditIsRepaid(true);
+//                    }
+//                    productionParametersRepository.save(paymentProductionParameters);
+//                }
+//            }
+//        }
+//
+//    }
 
     private void makeInvestmentCreditPayments(Game game) {
         var manufacturers = manufacturerService.getGameManufacturers(game.getId());
@@ -219,11 +253,11 @@ public class PaymentService {
 
     }
 
-    private BigDecimal calculateBusinessCreditInterestAmount(BigDecimal businessCreditAmount,
-                                                             BigDecimal interestRateBusinessCredit,
-                                                             Integer timeToMarket) {
+    public static BigDecimal calculateBusinessCreditInterestAmount(BigDecimal amount,
+                                                                   BigDecimal interestRateBusinessCredit,
+                                                                   Integer timeToMarket) {
         return (interestRateBusinessCredit.divide(BigDecimal.valueOf(100), 2, RoundingMode.UP))
-            .multiply(businessCreditAmount)
+            .multiply(amount)
             .multiply(BigDecimal.valueOf(timeToMarket * 2 / 365d));
     }
 }

@@ -20,6 +20,7 @@ import ru.itis.diploma.service.ManufacturerService;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import static ru.itis.diploma.model.enums.GameStatus.FINISHED;
 import static ru.itis.diploma.model.enums.GameStatus.STARTED;
@@ -68,9 +69,15 @@ public class GameController {
 
         var manufacturer = manufacturerService.getManufacturerByAccountIdAndGameId(userDetails.getAccount().getId(), id);
         if (manufacturer.isEnteredInitialProductionParameters()) {
+            model.addAttribute("competitors",
+                manufacturerService.getGameManufacturers(game.getId()).stream()
+                    .filter(m -> !Objects.equals(m.getId(), manufacturer.getId()))
+                    .toList());
+            model.addAttribute("manufacturer", manufacturer);
+            model.addAttribute("productionParameters", manufacturerService.getAllProductionParameters(manufacturer));
             return "game";
         } else {
-            return "enter_initial_production_params";
+            return "define_initial_production_params";
         }
     }
 

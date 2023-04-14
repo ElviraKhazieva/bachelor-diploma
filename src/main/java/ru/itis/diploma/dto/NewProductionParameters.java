@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EditProductionParameters extends CommonProductionParameters {
+public class NewProductionParameters extends CommonProductionParameters {
 
     private BigDecimal productionCosts;
     private BigDecimal businessCreditAmount;

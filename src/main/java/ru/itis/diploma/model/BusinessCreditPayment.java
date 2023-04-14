@@ -22,14 +22,19 @@ public class BusinessCreditPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private BigDecimal principalPayment;
-
-    private BigDecimal interestAmount;
-
     @ManyToOne
     private ProductionParameters productionParameters;
 
     private Integer date;
 
     private Integer nextDate;
+
+    private BigDecimal amount;
+
+    private BigDecimal nextAmount;
+//    private BigDecimal principalPayment;
+//
+//    private BigDecimal interestAmount;
+
+
 }

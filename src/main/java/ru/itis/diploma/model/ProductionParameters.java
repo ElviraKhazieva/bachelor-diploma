@@ -59,10 +59,6 @@ public class ProductionParameters {
 
     private BigDecimal interestRateBusinessCredit; //всегда берется базовая, если не получается выполнить списание по оборотному кредиту, то на остаток повышается процент
 
-    private BigDecimal businessCreditDebt;
-
-    private Boolean businessCreditIsRepaid;
-
     /**
      * Индекс качества продукции(0-1) - вводится ли производителем при старте? - да валидировать на 0-1
      */

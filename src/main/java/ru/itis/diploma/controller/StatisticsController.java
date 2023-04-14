@@ -17,10 +17,9 @@ public class StatisticsController {
 
     private final StatisticsService statisticsService;
 
-    @GetMapping("/game/{gameId}/revenue-data/{accountId}")
-    public Map<Integer, BigDecimal> getRevenueData(@PathVariable Long gameId,
-                                                   @PathVariable Long accountId) {
-        return statisticsService.getRevenueData(gameId, accountId);
+    @GetMapping("/game/revenue-data/{manufacturerId}")
+    public Map<Integer, BigDecimal> getRevenueData(@PathVariable Long manufacturerId) {
+        return statisticsService.getRevenueData(manufacturerId);
     }
 
     @GetMapping("/game/{gameId}/advertising-intensity/{accountId}")

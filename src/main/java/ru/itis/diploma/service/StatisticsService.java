@@ -21,10 +21,9 @@ public class StatisticsService {
     private final TradingSessionResultsRepository tradingSessionResultsRepository;
     private final AdvertisementRepository advertisementRepository;
 
-    public Map<Integer, BigDecimal> getRevenueData(Long gameId, Long accountId) {
-        var manufacturer = manufacturerService.getManufacturerByAccountIdAndGameId(accountId, gameId);
+    public Map<Integer, BigDecimal> getRevenueData(Long manufacturerId) {
         return tradingSessionResultsRepository.findByManufacturerId(
-                manufacturer.getId())
+                manufacturerId)
             .stream()
             .collect(Collectors.toMap(
                 TradingSessionResults::getTradeDate,

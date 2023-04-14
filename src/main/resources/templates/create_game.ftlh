@@ -63,7 +63,8 @@
                     </div>
 
                     <div class="form-outline mb-4">
-                        <input class="form-control form-control-lg" type="number" id="timeUnit" name="timeUnit"
+                        <input class="form-control form-control-lg" type="number" step="1" min="1" id="timeUnit"
+                               name="timeUnit"
                                placeholder="Модельное время в минутах(сутки = ? минут)">
                     </div>
 

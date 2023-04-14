@@ -17,9 +17,15 @@ public class ManufacturerParameters {
 
     private String fullName;
 
+    private Integer startDate;
+
     private BigDecimal balance;
 
     private BigDecimal investmentCreditAmount;
+
+    private BigDecimal businessCreditAmount;
+
+    private BigDecimal interestRateBusinessCredit;
 
     private Integer productCount;
 
