@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -185,72 +184,126 @@ public class PaymentService {
 
     private void makeInvestmentCreditPayments(Game game) {
         var manufacturers = manufacturerService.getGameManufacturers(game.getId());
-        List<InvestmentCreditPayment> allPayments = investmentCreditPaymentRepository.findAllByManufacturerIdInAndNextDate(manufacturers.stream().map(Manufacturer::getId).toList(), Game.currentDay);
+        List<InvestmentCreditPayment> allPayments = investmentCreditPaymentRepository
+            .findAllByManufacturerIdInAndNextDate(manufacturers.stream().map(Manufacturer::getId)
+                .toList(), Game.currentDay);
         for (InvestmentCreditPayment payment : allPayments) {
             var manufacturer = payment.getManufacturer();
-            if (!manufacturer.getInvestmentCreditIsRepaid()) {
-                var manufacturerPayments = investmentCreditPaymentRepository.findAllByManufacturerId(manufacturer.getId());
-
-                var principalPaymentsSum = manufacturerPayments
-                    .stream()
-                    .map(InvestmentCreditPayment::getPrincipalPayment)
-                    .filter(Objects::nonNull)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                var monthlyPrincipalPayment = manufacturer.getInvestmentCreditAmount()
-                    .divide(game.getInvestmentCreditTermMonths(), 2, RoundingMode.UP);
-                if (principalPaymentsSum.compareTo(manufacturer.getInvestmentCreditAmount()) < 0) { // проверка, что сумма платежей меньше суммы кредита(когда кто то погашал дополнительно вручную и верхняя проверка пройдет, но на самом деле уже внесена сумма), может быть такое, что пользователь погашал вручную и осталась задолженность меньше, чем ежемесячный платеж на основной долг и мы спишем больше? как проверять?
-                    var newPayment = InvestmentCreditPayment.builder()
-                        .manufacturer(manufacturer)
-                        .date(Game.currentDay)
-                        .nextDate(Game.currentDay + MONTH)
-                        .build();
-
-                    var interestAmount = calculateInvestmentCreditInterestAmount(
-                        principalPaymentsSum,
-                        manufacturer.getInvestmentCreditDebt(),
-                        manufacturer.getInvestmentCreditAmount(),
-                        game.getInterestRateInvestmentCredit());
-                    var fullPayment = monthlyPrincipalPayment.add(interestAmount).add(manufacturer.getInvestmentCreditDebt());
-                    if (fullPayment.compareTo(manufacturer.getBalance()) <= 0) {
-                        newPayment.setPrincipalPayment(monthlyPrincipalPayment.add(manufacturer.getInvestmentCreditDebt()));
-                        newPayment.setInterestAmount(interestAmount);
-                        manufacturer.setBalance(manufacturer.getBalance().subtract(fullPayment));
-                        manufacturer.setInvestmentCreditDebt(BigDecimal.ZERO);
-                    } else if (monthlyPrincipalPayment.add(interestAmount).compareTo(manufacturer.getBalance()) <= 0) {
-                        newPayment.setPrincipalPayment(monthlyPrincipalPayment);
-                        newPayment.setInterestAmount(interestAmount);
-                        manufacturer.setBalance(manufacturer.getBalance().subtract(monthlyPrincipalPayment).subtract(interestAmount));
-                    } else {
-                        if (interestAmount.compareTo(manufacturer.getBalance()) <= 0) {
-                            newPayment.setInterestAmount(interestAmount);
-                            newPayment.setPrincipalPayment(manufacturer.getBalance().subtract(interestAmount));
-                        } else {
-                            newPayment.setInterestAmount(manufacturer.getBalance());
-                            newPayment.setPrincipalPayment(BigDecimal.ZERO);
-                        }
-                        manufacturer.setInvestmentCreditDebt(manufacturer.getInvestmentCreditDebt()
-                            .add(fullPayment.subtract(manufacturer.getBalance())));
-                        manufacturer.setBalance(BigDecimal.ZERO);
-                    }
-                    investmentCreditPaymentRepository.save(newPayment);
+            var debt = manufacturer.getInvestmentCreditDebt();
+            if (debt.compareTo(BigDecimal.ZERO) > 0) {
+                var newPayment = InvestmentCreditPayment.builder()
+                    .manufacturer(manufacturer)
+                    .date(Game.currentDay)
+                    .nextDate(Game.currentDay + MONTH)
+                    .build();
+                var monthlyPrincipalPayment = debt
+                    .divide(manufacturer.getInvestmentCreditTermMonths()
+                            .subtract(
+                                BigDecimal.valueOf(investmentCreditPaymentRepository.findAllByManufacturerId(manufacturer.getId()).size())
+                                    .subtract(BigDecimal.ONE)),
+                        2, RoundingMode.UP);
+                var interestAmount = calculateInvestmentCreditInterestAmount(debt, game.getInterestRateInvestmentCredit());
+                var fullPayment = monthlyPrincipalPayment.add(interestAmount);
+                if (fullPayment.compareTo(manufacturer.getBalance()) <= 0) {
+                    newPayment.setPrincipalPayment(monthlyPrincipalPayment);
+                    newPayment.setInterestAmount(interestAmount);
+                    manufacturer.setBalance(manufacturer.getBalance().subtract(fullPayment));
+                    manufacturer.setInvestmentCreditDebt(debt.subtract(monthlyPrincipalPayment));
                 } else {
-                    manufacturer.setInvestmentCreditIsRepaid(true);
+                    if (interestAmount.compareTo(manufacturer.getBalance()) <= 0) {
+                        newPayment.setInterestAmount(interestAmount);
+                        newPayment.setPrincipalPayment(manufacturer.getBalance().subtract(interestAmount));
+                        if (newPayment.getPrincipalPayment().compareTo(BigDecimal.ZERO) > 0) {
+                            manufacturer.setInvestmentCreditDebt(debt.subtract(newPayment.getPrincipalPayment()));
+                        }
+                    } else {
+                        newPayment.setInterestAmount(manufacturer.getBalance());
+                        newPayment.setPrincipalPayment(BigDecimal.ZERO);
+                        manufacturer.setInvestmentCreditDebt(debt.add(interestAmount.subtract(manufacturer.getBalance())));
+                    }
+                    manufacturer.setBalance(BigDecimal.ZERO);
+                    manufacturer.setInvestmentCreditTermMonths(manufacturer.getInvestmentCreditTermMonths().add(BigDecimal.ONE));
                 }
                 manufacturerRepository.save(manufacturer);
+                investmentCreditPaymentRepository.save(newPayment);
             }
         }
     }
 
-    private BigDecimal calculateInvestmentCreditInterestAmount(BigDecimal principalPaymentSum,
-                                                               BigDecimal investmentCreditDebt,
-                                                               BigDecimal investmentCreditAmount,
+//    private void makeInvestmentCreditPayments(Game game) {
+//        var manufacturers = manufacturerService.getGameManufacturers(game.getId());
+//        List<InvestmentCreditPayment> allPayments = investmentCreditPaymentRepository.findAllByManufacturerIdInAndNextDate(manufacturers.stream().map(Manufacturer::getId).toList(), Game.currentDay);
+//        for (InvestmentCreditPayment payment : allPayments) {
+//            var manufacturer = payment.getManufacturer();
+//            if (!manufacturer.getInvestmentCreditIsRepaid()) {
+//                var manufacturerPayments = investmentCreditPaymentRepository.findAllByManufacturerId(manufacturer.getId());
+//
+//                var principalPaymentsSum = manufacturerPayments
+//                    .stream()
+//                    .map(InvestmentCreditPayment::getPrincipalPayment)
+//                    .filter(Objects::nonNull)
+//                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//                var monthlyPrincipalPayment = manufacturer.getInvestmentCreditAmount()
+//                    .divide(game.getInvestmentCreditTermMonths(), 2, RoundingMode.UP);
+//                if (principalPaymentsSum.compareTo(manufacturer.getInvestmentCreditAmount()) < 0) { // проверка, что сумма платежей меньше суммы кредита(когда кто то погашал дополнительно вручную и верхняя проверка пройдет, но на самом деле уже внесена сумма), может быть такое, что пользователь погашал вручную и осталась задолженность меньше, чем ежемесячный платеж на основной долг и мы спишем больше? как проверять?
+//                    var newPayment = InvestmentCreditPayment.builder()
+//                        .manufacturer(manufacturer)
+//                        .date(Game.currentDay)
+//                        .nextDate(Game.currentDay + MONTH)
+//                        .build();
+//
+//                    var interestAmount = calculateInvestmentCreditInterestAmount(
+//                        principalPaymentsSum,
+//                        manufacturer.getInvestmentCreditDebt(),
+//                        manufacturer.getInvestmentCreditAmount(),
+//                        game.getInterestRateInvestmentCredit());
+//                    var fullPayment = monthlyPrincipalPayment.add(interestAmount).add(manufacturer.getInvestmentCreditDebt());
+//                    if (fullPayment.compareTo(manufacturer.getBalance()) <= 0) {
+//                        newPayment.setPrincipalPayment(monthlyPrincipalPayment.add(manufacturer.getInvestmentCreditDebt()));
+//                        newPayment.setInterestAmount(interestAmount);
+//                        manufacturer.setBalance(manufacturer.getBalance().subtract(fullPayment));
+//                        manufacturer.setInvestmentCreditDebt(BigDecimal.ZERO);
+//                    } else if (monthlyPrincipalPayment.add(interestAmount).compareTo(manufacturer.getBalance()) <= 0) {
+//                        newPayment.setPrincipalPayment(monthlyPrincipalPayment);
+//                        newPayment.setInterestAmount(interestAmount);
+//                        manufacturer.setBalance(manufacturer.getBalance().subtract(monthlyPrincipalPayment).subtract(interestAmount));
+//                    } else {
+//                        if (interestAmount.compareTo(manufacturer.getBalance()) <= 0) {
+//                            newPayment.setInterestAmount(interestAmount);
+//                            newPayment.setPrincipalPayment(manufacturer.getBalance().subtract(interestAmount));
+//                        } else {
+//                            newPayment.setInterestAmount(manufacturer.getBalance());
+//                            newPayment.setPrincipalPayment(BigDecimal.ZERO);
+//                        }
+//                        manufacturer.setInvestmentCreditDebt(manufacturer.getInvestmentCreditDebt()
+//                            .add(fullPayment.subtract(manufacturer.getBalance())));
+//                        manufacturer.setBalance(BigDecimal.ZERO);
+//                    }
+//                    investmentCreditPaymentRepository.save(newPayment);
+//                } else {
+//                    manufacturer.setInvestmentCreditIsRepaid(true);
+//                }
+//                manufacturerRepository.save(manufacturer);
+//            }
+//        }
+//    }
+
+    //    private BigDecimal calculateInvestmentCreditInterestAmount(BigDecimal principalPaymentSum,
+//                                                               BigDecimal investmentCreditDebt,
+//                                                               BigDecimal investmentCreditAmount,
+//                                                               BigDecimal interestRateInvestmentCredit) {
+//        return (interestRateInvestmentCredit.divide(BigDecimal.valueOf(100), 2, RoundingMode.UP))
+//            .multiply(investmentCreditAmount.add(investmentCreditDebt).subtract(principalPaymentSum))
+//            .divide(BigDecimal.valueOf(12), 2, RoundingMode.UP);
+//        //списываем весь баланс в случае невозможности списать полный платеж, эту списанную сумму равную балансу мы разделяем на проценты и осн,  мы заносим в поле monthlyPrincipalPayment и проценты
+//
+//    }
+    private BigDecimal calculateInvestmentCreditInterestAmount(BigDecimal investmentCreditDebt,
                                                                BigDecimal interestRateInvestmentCredit) {
         return (interestRateInvestmentCredit.divide(BigDecimal.valueOf(100), 2, RoundingMode.UP))
-            .multiply(investmentCreditAmount.add(investmentCreditDebt).subtract(principalPaymentSum))
+            .multiply(investmentCreditDebt)
             .divide(BigDecimal.valueOf(12), 2, RoundingMode.UP);
-        //списываем весь баланс в случае невозможности списать полный платеж, эту списанную сумму равную балансу мы разделяем на проценты и осн,  мы заносим в поле monthlyPrincipalPayment и проценты
-
     }
 
     public static BigDecimal calculateBusinessCreditInterestAmount(BigDecimal amount,

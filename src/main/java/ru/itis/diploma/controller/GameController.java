@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import ru.itis.diploma.dto.AccountDto;
 import ru.itis.diploma.dto.CreateGameDto;
 import ru.itis.diploma.dto.GameDto;
+import ru.itis.diploma.dto.ManufacturerParameters;
 import ru.itis.diploma.model.Account;
 import ru.itis.diploma.security.details.AccountUserDetails;
 import ru.itis.diploma.service.AccountService;
@@ -21,6 +22,7 @@ import ru.itis.diploma.service.ManufacturerService;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static ru.itis.diploma.model.enums.GameStatus.FINISHED;
 import static ru.itis.diploma.model.enums.GameStatus.STARTED;
@@ -57,11 +59,12 @@ public class GameController {
         AccountDto account = accountService.getByEmail(userDetails.getUsername());
         model.addAttribute("account", account);
 
+        if (FINISHED.equals(game.getStatus())) {
+            System.out.println(gameService.getGameResults(game));
+            model.addAttribute("gameResults", gameService.getGameResults(game));
+        }
+
         if (Account.Role.ADMIN.equals(userDetails.getAccount().getRole())) {
-            if (FINISHED.equals(game.getStatus())) {
-                System.out.println(gameService.getGameResults(game));
-                model.addAttribute("gameResults", gameService.getGameResults(game));
-            }
             model.addAttribute("startedTradingSessions", STARTED.equals(game.getStatus()));
             model.addAttribute("manufacturers", manufacturerService.getGameManufacturers(id));
             return "game_admin";
@@ -72,6 +75,20 @@ public class GameController {
             model.addAttribute("competitors",
                 manufacturerService.getGameManufacturers(game.getId()).stream()
                     .filter(m -> !Objects.equals(m.getId(), manufacturer.getId()))
+                    .map(m -> manufacturerService.getLastProductionParameters(m.getId()))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(p -> {
+                        var advertisement = manufacturerService.getLastAdvertisement(manufacturer.getId()).get();
+                        return ManufacturerParameters.builder()
+                            .id(p.getManufacturer().getId())
+                            .fullName(p.getManufacturer().getAccount().getFullName())
+                            .assortment(p.getAssortment())
+                            .price(p.getPrice())
+                            .qualityIndex(p.getQualityIndex())
+                            .advertisingIntensityIndex(advertisement.getIntensityIndex())
+                            .build();
+                    })
                     .toList());
             model.addAttribute("manufacturer", manufacturer);
             model.addAttribute("productionParameters", manufacturerService.getAllProductionParameters(manufacturer));

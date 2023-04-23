@@ -63,7 +63,7 @@
                 <p>Налог с продаж - ${game.salesTax}%</p>
                 <p>Процентная ставка инвестиционного кредита - ${game.interestRateInvestmentCredit}%</p>
                 <p>Срок инвестиционного кредита - ${game.interestRateInvestmentCredit} мес</p>
-                <p>Процентная ставка оборотного кредита - ${game.interestRateInvestmentCredit} мес</p>
+                <p>Процентная ставка оборотного кредита - ${game.interestRateInvestmentCredit}%</p>
             </div>
             <div class="col-4">
                 <p>Вес ассортимента - ${game.assortmentWeight}</p>
@@ -71,93 +71,90 @@
                 <p>Вес качества - ${game.qualityWeight}</p>
             </div>
         </div>
-        <div class="col-md-12" style="margin-top: 50px">
-            <h2>Данные производителей:</h2>
-            <div class="table-responsive" style="height: 400px">
-                <table style="margin-top: 25px" id="dataTable" class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>Имя</th>
-                        <th>Баланс</th>
-                        <th>Сумма инвестиционного кредита</th>
-                        <th>День начала выпуска продукции</th>
-                        <th>Число дней выпуска продукции</th>
-                        <th>Количество продукции</th>
-                        <th>Цена(шт)</th>
-                        <th>Себестоимость(шт)</th>
-                        <th>Ассортимент</th>
-                        <th>Индекс качества</th>
-                        <th>Мощность производства(ед/сутки)</th>
-                        <th>День начала рекламы</th>
-                        <th>День завершения рекламы</th>
-                        <th>Стоимость рекламы</th>
-                        <th>Индекс интенсивности рекламы</th>
-                        <th>Сумма оборотного кредита</th>
-                        <th>Процентная ставка оборотного кредита</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="row">
-                <#--                <div class="col-md-4">-->
-                <div class="col-md-4 d-flex justify-content-center">
-                    <button id="refreshButton" class="btn btn-primary">Обновить таблицу</button>
-                </div>
-                <#if game.status != 'FINISHED'>
-
-                <div class="col-md-4 d-flex justify-content-center">
-                    <button id="schedulerButton" class="btn btn-success" onclick="toggleScheduler()">
-                        <#if startedTradingSessions == true>Остановить торговые сессии<#else>Запустить торговые сессии</#if>
-                    </button>
-                </div>
-
-                <div class="col-md-4 d-flex justify-content-center">
-                    <form method="post" action="/game/${game.id}/finish">
-                        <button id="finishGame" class="btn btn-danger">
-                            Завершить игру
-                        </button>
-                    </form>
-                </div>
-                <#else>
-                <div class="table-responsive" style="height: 374px">
+        <#if game.status != 'FINISHED'>
+            <div class="col-md-12" style="margin-top: 50px">
+                <h2>Данные производителей:</h2>
+                <div class="table-responsive" style="height: 400px">
                     <table style="margin-top: 25px" id="dataTable" class="table table-striped">
                         <thead>
                         <tr>
-                            <#--                                    <th>Имя</th>-->
-                            <#--                                    <th>Баланс</th>-->
-                            <#--                                    <th>Сумма инвестиционного кредита</th>-->
-                            <#--                                    <th>Количество продукции</th>-->
-                            <#--                                    <th>Цена(шт)</th>-->
-                            <#--                                    <th>Себестоимость(шт)</th>-->
-                            <#--                                    <th>Ассортимент</th>-->
-                            <#--                                    <th>Индекс качества</th>-->
-                            <#--                                    <th>Мощность производства(ед/сутки)</th>-->
-                            <#--                                    <th>Число дней выпуска продукции</th>-->
-                            <#--                                    <th>День начала рекламы</th>-->
-                            <#--                                    <th>День завершения рекламы</th>-->
-                            <#--                                    <th>Стоимость рекламы</th>-->
-                            <#--                                    <th>Индекс интенсивности рекламы</th>-->
-                            <#--                                    <th>Сумма оборотного кредита</th>-->
-                            <#--                                    <th>Процентная ставка оборотного кредита</th>-->
+                            <th>Имя</th>
+                            <th>Баланс</th>
+                            <th>Сумма инвестиционного кредита</th>
+                            <th>День начала выпуска продукции</th>
+                            <th>Число дней выпуска продукции</th>
+                            <th>Количество продукции</th>
+                            <th>Цена(ед)</th>
+                            <th>Себестоимость(ед)</th>
+                            <th>Ассортимент</th>
+                            <th>Индекс качества(0-1)</th>
+                            <th>Мощность производства(ед/сутки)</th>
+                            <th>День начала рекламы</th>
+                            <th>День завершения рекламы</th>
+                            <th>Стоимость рекламы</th>
+                            <th>Индекс интенсивности рекламы(1-7)</th>
+                            <th>Сумма оборотного кредита</th>
+                            <th>Процентная ставка оборотного кредита</th>
                         </tr>
                         </thead>
                         <tbody>
 
                         </tbody>
                     </table>
-                    </#if>
+                </div>
+
+                <div class="row">
+                    <#--                <div class="col-md-4">-->
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <button id="refreshButton" class="btn btn-primary">Обновить таблицу</button>
+                    </div>
+                    <#--                <#if game.status != 'FINISHED'>-->
+
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <button id="schedulerButton" class="btn btn-success" onclick="toggleScheduler()">
+                            <#if startedTradingSessions == true>Остановить торговые сессии<#else>Запустить торговые сессии</#if>
+                        </button>
+                    </div>
+
+                    <div class="col-md-4 d-flex justify-content-center">
+                        <form method="post" action="/game/${game.id}/finish">
+                            <button id="finishGame" class="btn btn-danger">
+                                Завершить игру
+                            </button>
+                        </form>
+                    </div>
+                    <#--                </div>-->
+                </div>
+                <#--                </div>-->
+            </div>
+        <#else>
+            <div class="col-md-12" style="margin-top: 50px">
+                <h2>Результат игры:</h2>
+                <div class="table-responsive" style="height: 374px">
+                    <table style="margin-top: 25px" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Место</th>
+                            <th>Игрок</th>
+                            <th>Чистая прибыль</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <#list gameResults?sort_by("result")?reverse as gameResult>
+                            <tr>
+                                <td>${gameResult_index + 1}</td>
+                                <td>${gameResult.manufacturer.account.fullName}</td>
+                                <td>${gameResult.result}</td>
+                            </tr>
+                        </#list>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <#--                </div>-->
-        </div>
-
+        </#if>
     </div>
 </div>
-</div>
+<#--</div>-->
 <footer class="footer d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
     <div class="text-white mb-3">
         Copyright © 2023. All rights reserved.
@@ -189,7 +186,11 @@
                     const cell2 = row.insertCell(2);
                     cell2.innerHTML = item.investmentCreditAmount;
                     const cell3 = row.insertCell(3);
-                    cell3.innerHTML = item.startDate + 1;
+                    if (item.startDate != null) {
+                        cell3.innerHTML = item.startDate + 1;
+                    } else {
+                        cell3.innerHTML = item.startDate;
+                    }
                     const cell4 = row.insertCell(4);
                     cell4.innerHTML = item.timeToMarket;
                     const cell5 = row.insertCell(5);

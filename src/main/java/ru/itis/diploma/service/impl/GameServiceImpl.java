@@ -6,9 +6,11 @@ import ru.itis.diploma.dto.CreateGameDto;
 import ru.itis.diploma.dto.GameDto;
 import ru.itis.diploma.exception.EntityNotFoundException;
 import ru.itis.diploma.model.Game;
+import ru.itis.diploma.model.GameResult;
 import ru.itis.diploma.model.Manufacturer;
 import ru.itis.diploma.model.enums.GameStatus;
 import ru.itis.diploma.repository.GameRepository;
+import ru.itis.diploma.repository.GameResultRepository;
 import ru.itis.diploma.repository.ManufacturerRepository;
 import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.GameService;
@@ -16,12 +18,7 @@ import ru.itis.diploma.service.ManufacturerService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +26,7 @@ public class GameServiceImpl implements GameService {
 
     private final AccountService accountService;
     private final GameRepository gameRepository;
+    private final GameResultRepository gameResultRepository;
     private final ManufacturerService manufacturerService;
     private final ManufacturerRepository manufacturerRepository;
 
@@ -65,8 +63,8 @@ public class GameServiceImpl implements GameService {
             .map(userId -> Manufacturer.builder()
                 .game(newGame)
                 .account(accountService.getById(userId))
-                .balance(BigDecimal.ZERO)
-                .investmentCreditAmount(BigDecimal.ZERO)
+//                .balance(BigDecimal.ZERO)
+//                .investmentCreditAmount(BigDecimal.ZERO)
                 .investmentCreditDebt(BigDecimal.ZERO)
                 .investmentCreditIsRepaid(false)
                 .build())
@@ -97,28 +95,40 @@ public class GameServiceImpl implements GameService {
     public void finishGame(Long id) {
         Game game = getGameById(id);
         game.setStatus(GameStatus.FINISHED);
-        gameRepository.save(game);
+        game.setEndDate(LocalDateTime.now());
+        save(game);
+
+        var manufacturers = manufacturerService.getGameManufacturers(game.getId());
+        var gameResults = manufacturers.stream()
+            .map(m -> GameResult.builder()
+                .game(game)
+                .manufacturer(m)
+                .result(calculateFinishFinancialStatus(m, game))
+                .build())
+            .toList();
+        gameResultRepository.saveAll(gameResults);
     }
 
-    public Map<Manufacturer, BigDecimal> getGameResults(Game game) {
-        List<Manufacturer> manufacturers = manufacturerService.getGameManufacturers(game.getId());
-        return manufacturers.stream()
-            .collect(Collectors.toMap(
-                Function.identity(),
-                this::calculateFinishFinancialStatus
-            ))
-            .entrySet().stream()
-            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue,
-                (oldValue, newValue) -> oldValue,
-                LinkedHashMap::new
-            ));
+    public List<GameResult> getGameResults(Game game) {
+        return gameResultRepository.findByGameId(game.getId());
+//        List<Manufacturer> manufacturers = manufacturerService.getGameManufacturers(game.getId());
+//        return manufacturers.stream()
+//            .collect(Collectors.toMap(
+//                Function.identity(),
+//                manufacturer -> calculateFinishFinancialStatus(manufacturer, game)
+//            ))
+//            .entrySet().stream()
+//            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+//            .collect(Collectors.toMap(
+//                Map.Entry::getKey,
+//                Map.Entry::getValue,
+//                (oldValue, newValue) -> oldValue,
+//                LinkedHashMap::new
+//            ));
     }
 
-    private BigDecimal calculateFinishFinancialStatus(Manufacturer manufacturer) {
-        var debts = manufacturerService.calculateManufacturerInvestmentCreditDebt(manufacturer)
+    private BigDecimal calculateFinishFinancialStatus(Manufacturer manufacturer, Game game) {
+        var debts = manufacturerService.calculateManufacturerInvestmentCreditDebt(manufacturer, game)
             .add(manufacturerService.calculateManufacturerBusinessCreditDebt(manufacturer));
         return manufacturer.getBalance().subtract(debts);
     }

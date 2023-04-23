@@ -31,7 +31,7 @@ public class CronService {
         Game.currentDay++;
         var manufacturers = manufacturerService.getGameManufacturers(game.getId());
         var productionParametersList = manufacturers.stream()
-            .map(manufacturer -> manufacturerService.getActualProductionParameters(manufacturer.getId()).get())
+            .map(manufacturer -> manufacturerService.getLastProductionParameters(manufacturer.getId()).get())
             .sorted(Comparator.comparingDouble(p -> calculateValue(game, (ProductionParameters) p)).reversed())
             .toList();
         produceManufacturersProductsToMarket(productionParametersList);
@@ -66,7 +66,7 @@ public class CronService {
         BigDecimal qualityWeight = game.getQualityWeight();//0.4;
         BigDecimal advertisementWeight = game.getAdvertisementWeight();//0.3;
 
-        Advertisement advertisement = manufacturerService.getActualAdvertisement(productionParameters.getManufacturer().getId()).get();
+        Advertisement advertisement = manufacturerService.getLastAdvertisement(productionParameters.getManufacturer().getId()).get();
         return productionParameters.getQualityIndex().multiply(qualityWeight)
             .add(BigDecimal.valueOf(advertisement.getIntensityIndex())).multiply(advertisementWeight)
             .add(BigDecimal.valueOf(productionParameters.getAssortment()).multiply(assortmentWeight))

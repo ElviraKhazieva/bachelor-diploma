@@ -14,6 +14,7 @@ import ru.itis.diploma.dto.InitialProductionParameters;
 import ru.itis.diploma.dto.ManufacturerFinancialStatus;
 import ru.itis.diploma.dto.ManufacturerParameters;
 import ru.itis.diploma.dto.NewProductionParameters;
+import ru.itis.diploma.model.Game;
 import ru.itis.diploma.security.details.AccountUserDetails;
 import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.GameService;
@@ -37,12 +38,13 @@ public class ManufacturerController {
                                                     @PathVariable("id") Long gameId,
                                                     InitialProductionParameters initialProductionParameters,
                                                     Model model) {
+        Game game = gameService.getGameById(gameId);
         if (notValidAdvertisingParameters(initialProductionParameters)) {
-            model.addAttribute("game", gameService.getGameById(gameId));
+            model.addAttribute("game", game);
             model.addAttribute("errorMessage", "Некорректные параметры рекламы");
             return "define_initial_production_params";
         }
-        manufacturerService.defineInitialProductionParameters(initialProductionParameters, userDetails.getAccount().getId(), gameId);
+        manufacturerService.defineInitialProductionParameters(initialProductionParameters, userDetails.getAccount().getId(), game);
         return "redirect:/game/" + gameId;
     }
 
@@ -87,7 +89,8 @@ public class ManufacturerController {
     //@PreAuthorize("isAuthenticated()")
     public ManufacturerFinancialStatus getAccountGames(@PathVariable("id") Long gameId,
                                                        @PathVariable Long accountId) {
-        return manufacturerService.getManufacturerFinancialStatus(gameId, accountId);
+        var game = gameService.getGameById(gameId);
+        return manufacturerService.getManufacturerFinancialStatus(game, accountId);
     }
 
     private boolean notValidAdvertisingParameters(CommonProductionParameters commonProductionParameters) {

@@ -15,6 +15,10 @@ import java.util.Optional;
 
 public interface ManufacturerService {
 
+    Optional<ProductionParameters> getLastProductionParameters(Long manufacturerId);
+
+    Optional<Advertisement> getLastAdvertisement(Long manufacturerId);
+
     Optional<ProductionParameters> getActualProductionParameters(Long manufacturerId);
 
     Optional<Advertisement> getActualAdvertisement(Long manufacturerId);
@@ -27,15 +31,15 @@ public interface ManufacturerService {
 
     void defineInitialProductionParameters(InitialProductionParameters initialProductionParameters,
                                            Long accountId,
-                                           Long gameId);
+                                           Game game);
 
     void defineNewProductionParameters(NewProductionParameters newProductionParameters,
                                        Long accountId,
                                        Game game);
 
-    ManufacturerFinancialStatus getManufacturerFinancialStatus(Long gameId, Long accountId);
+    ManufacturerFinancialStatus getManufacturerFinancialStatus(Game game, Long accountId);
 
-    BigDecimal calculateManufacturerInvestmentCreditDebt(Manufacturer manufacturer);
+    BigDecimal calculateManufacturerInvestmentCreditDebt(Manufacturer manufacturer, Game game);
 
     BigDecimal calculateManufacturerBusinessCreditDebt(Manufacturer manufacturer);
 

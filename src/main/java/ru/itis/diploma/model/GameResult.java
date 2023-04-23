@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Manufacturer {
+public class GameResult {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,20 +27,8 @@ public class Manufacturer {
     private Game game;
 
     @ManyToOne
-    private Account account;
+    private Manufacturer manufacturer;
 
-//    private BigDecimal income; //высчитывается в конце игры по результатам
-
-    private BigDecimal balance;
-
-    private BigDecimal investmentCreditAmount; //величина инвестиционного кредита(стартоый капитал)
-
-    private BigDecimal investmentCreditDebt;
-
-    private BigDecimal investmentCreditTermMonths;
-
-    private boolean enteredInitialProductionParameters;
-
-    private Boolean investmentCreditIsRepaid;
+    private BigDecimal result;
 
 }

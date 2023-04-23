@@ -27,15 +27,6 @@
             display: none;
         }
 
-        #tab2-image {
-            background-image: url('https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild6361-3637-4137-a166-393435636634__clip-covid-19-spread.png');
-            background-size: cover;
-            background-position: center;
-            height: 300px;
-            width: 300px;
-            display: none;
-        }
-
     </style>
 </head>
 <body>
@@ -78,30 +69,72 @@
         <div class="tab-pane fade show active" id="tab1" role="tabpanel"
              aria-labelledby="tab1-tab">
             <div class="row justify-content-center" style="margin-left: 50px; margin-right: 50px">
-                <div class="col-4 d-flex justify-content-center">
-                    <div id="tab1-image" class="align-self-center image-container"></div>
-                </div>
-                <div class="col-4" style="margin-top:60px">
-                    <h2>Финансовое состояние</h2>
-                    <p id="day">День: -</p>
-                    <p id="balance">Баланс: -</p>
-                    <p>Сумма инвестиционного кредита: ${manufacturer.investmentCreditAmount!}</p>
-                    <p id="investmentCreditDebt">Долг по инвестиционному кредиту: -</p>
-                    <p id="businessCreditDebt">Долг по оборотным кредитам: -</p>
-                    <p id="todayRevenue">Выручка за сегодня: -</p>
-                    <button id="refreshTab1" style="margin-top: 10px" class="btn btn-primary">Обновить</button>
-                </div>
+                <#if game.status == 'FINISHED'>
+                    <div class="col-6 d-flex justify-content-center">
+                        <div id="game_results" class="align-self-center image-container">
+                            <img width="580" height="430"
+                                 src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild3730-3365-4562-b332-643837363439__clip-working-on-busi.png"
+                                 alt="">
+                        </div>
+                    </div>
+                    <div class="col-6" style="margin-top:70px">
+                        <h2>Параметры игры</h2>
+                        <p>Модельное время(Длительность 1 суток) - ${game.timeUnit} мин</p>
+                        <p>Цена создания единицы мощности производства - ${game.productPower}</p>
+                        <p>Налог с продаж - ${game.salesTax}%</p>
+                        <p>Процентная ставка инвестиционного кредита - ${game.interestRateInvestmentCredit}%</p>
+                        <p>Срок инвестиционного кредита - ${game.interestRateInvestmentCredit} мес</p>
+                    </div>
+                    <div class="col-md-12">
+                        <h2>Результат игры:</h2>
+                        <div class="table-responsive" style="height: 200px">
+                            <table style="margin-top: 25px" class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Место</th>
+                                    <th>Игрок</th>
+                                    <th>Чистая прибыль</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <#list gameResults?sort_by("result")?reverse as gameResult>
+                                    <tr>
+                                        <td>${gameResult_index + 1}</td>
+                                        <td>${gameResult.manufacturer.account.fullName}</td>
+                                        <td>${gameResult.result}</td>
+                                    </tr>
+                                </#list>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <#else>
+                    <div class="col-4 d-flex justify-content-center">
+                        <div id="tab1-image" class="align-self-center image-container"></div>
+                    </div>
+                    <div class="col-4" style="margin-top:50px">
+                        <h2>Финансовое состояние</h2>
+                        <p id="day">День: -</p>
+                        <p id="balance">Баланс: -</p>
+                        <p>Сумма инвестиционного кредита: ${manufacturer.investmentCreditAmount!}</p>
+                        <p id="investmentCreditDebt">Долг по инвестиционному кредиту: -</p>
+                        <p id="businessCreditDebt">Долг по оборотным кредитам: -</p>
+                        <p id="todayRevenue">Выручка за сегодня: -</p>
+                        <button id="refreshTab1" style="margin-top: 10px" class="btn btn-primary">Обновить</button>
+                    </div>
 
-                <div class="col-4" style="margin-top:60px">
-                    <h2>Параметры игры</h2>
-                    <p>Модельное время(Длительность 1 суток) - ${game.timeUnit} мин</p>
-                    <p>Налог с продаж - ${game.salesTax}%</p>
-                    <p>Процентная ставка инвестиционного кредита - ${game.interestRateInvestmentCredit}%</p>
-                    <p>Срок инвестиционного кредита - ${game.interestRateInvestmentCredit} мес</p>
-                </div>
+                    <div class="col-4" style="margin-top:50px">
+                        <h2>Параметры игры</h2>
+                        <p>Модельное время(Длительность 1 суток) - ${game.timeUnit} мин</p>
+                        <p>Цена создания единицы мощности производства - ${game.productPower}</p>
+                        <p>Налог с продаж - ${game.salesTax}%</p>
+                        <p>Процентная ставка инвестиционного кредита - ${game.interestRateInvestmentCredit}%</p>
+                        <p>Срок инвестиционного кредита - ${game.interestRateInvestmentCredit} мес</p>
+                    </div>
+                </#if>
                 <#--                <div class="container-fluid mt-5">-->
                 <#--                    <div class="row justify-content-center" style="margin-left: 50px; margin-right: 50px">-->
-                <div class="col-md-12" style="margin-top: 60px">
+                <div class="col-md-12" style="margin-top: 30px">
                     <h2>Параметры производства:</h2>
                     <div class="table-responsive" style="height: 300px;">
                         <table id="dataTable" class="table table-striped">
@@ -145,19 +178,22 @@
                             </tbody>
                         </table>
                     </div>
-                    <h4 id="timeToMarketEndDay">Последний день выпуска продукции текущего производственного
-                        цикла: -</h4>
+                    <#if game.status != 'FINISHED'>
+                        <h4 id="timeToMarketEndDay">Последний день выпуска продукции текущего производственного
+                            цикла: -</h4>
+                    </#if>
                 </div>
-                <div class="input-group">
-                    <button class="btn btn-primary" type="button" id="enterParametersButton"
-                            onclick="window.location.href='/game/${game.id}/production-parameters';">Определить
-                        новые параметры производства
-                    </button>
-                </div>
+                <#if game.status != 'FINISHED'>
+                    <div class="input-group">
+                        <button class="btn btn-primary" type="button" id="enterParametersButton"
+                                onclick="window.location.href='/game/${game.id}/production-parameters';">Определить
+                            новые параметры производства
+                        </button>
+                    </div>
+                </#if>
             </div>
         </div>
         <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
-            <#--            <div id="tab2-image" class="image-container"></div>-->
             <div class="container d-flex justify-content-center">
                 <div class="row">
                     <div class="col-12">
@@ -181,16 +217,25 @@
         <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
             <div class="container d-flex justify-content-center">
                 <div class="row">
-                    <#list competitors as competitor>
-                        <div style="margin-top: 15px">
-                            <h3>${competitor.account.fullName}</h3>
-                            <h4>Цена товара: </h4>
-                            <canvas id="chartt${competitor.id}" width="800" height="450"></canvas>
+                    <#assign competitorsLen = competitors?size>
+                    <#if (competitorsLen > 0)>
+                        <#list competitors as competitor>
+                            <div style="margin-top: 15px">
+                                <h3>${competitor.fullName}</h3>
+                                <h4>Цена товара: ${competitor.price}</h4>
+                                <h4>Ассортимент: ${competitor.assortment}</h4>
+                                <h4>Индекс интенсивности рекламы: ${competitor.advertisingIntensityIndex}</h4>
+                                <canvas id="chartt${competitor.id}" width="800" height="450"></canvas>
+                            </div>
+                        </#list>
+                    <#--                    <#assign competitorsLen = competitors?size>-->
+                    <#--                    <#if (competitorsLen > 0)>-->
+                        <div class="col-12 mt-3">
+                            <button class="btn btn-primary" onclick="updateCharts()">Обновить графики</button>
                         </div>
-                    </#list>
-                    <div class="col-12 mt-3">
-                        <button class="btn btn-primary" onclick="updateCharts()">Обновить графики</button>
-                    </div>
+                    <#else>
+                        <h4>Как только конкуренты введут параметры производства, вы сможете их увидеть здесь!</h4>
+                    </#if>
                 </div>
             </div>
         </div>
@@ -218,9 +263,11 @@
             const tabId = link.getAttribute('href');
 
             // Очищаем содержимое предыдущей вкладки, если её id не соответствует текущей вкладке
-            const previousTabContent = tabContent.querySelector('.tab-pane.show');
-            if (previousTabContent && previousTabContent.id !== tabId.slice(1)) {
-                tabContent.removeChild(previousTabContent);
+            if (tabContent) {
+                const previousTabContent = tabContent.querySelector('.tab-pane.show');
+                if (previousTabContent && previousTabContent.id !== tabId.slice(1)) {
+                    tabContent.removeChild(previousTabContent);
+                }
             }
         });
     });
@@ -259,9 +306,10 @@
                 let chartData = [];
                 // определяем максимальный ключ в мапе
                 let maxKey = Math.max.apply(Math, Object.keys(newData));
-                const labels = Array.from({length: maxKey}, (_, i) => i + 1);
+                // const labels = Array.from({length: maxKey}, (_, i) => i);
+                const labels = Array.from(Array(maxKey + 1).keys());
                 // проходим циклом по всем возможным ключам
-                for (let i = 1; i <= maxKey; i++) {
+                for (let i = 0; i <= maxKey; i++) {
                     // если значение для ключа существует в мапе, добавляем его в массив данных
                     if (i in newData) {
                         chartData.push(newData[i]);
@@ -481,9 +529,10 @@
                 let chartData = [];
                 // определяем максимальный ключ в мапе
                 let maxKey = Math.max.apply(Math, Object.keys(newData));
-                const labels = Array.from({length: maxKey}, (_, i) => i + 1);
+                // const labels = Array.from({length: maxKey}, (_, i) => i + 1);
                 // проходим циклом по всем возможным ключам
-                for (let i = 1; i <= maxKey; i++) {
+                const labels = Array.from(Array(maxKey + 1).keys());
+                for (let i = 0; i <= maxKey; i++) {
                     // если значение для ключа существует в мапе, добавляем его в массив данных
                     if (i in newData) {
                         chartData.push(newData[i]);
@@ -505,25 +554,32 @@
     }
 
 
+    <#if game.status != 'FINISHED'>
     document.getElementById('refreshTab1').addEventListener('click', fetchBalanceAndDebt);
+    </#if>
     document.getElementById('refreshTab2').addEventListener('click', fetchData);
     document.getElementById('myTab').addEventListener('shown.bs.tab', function (event) {
         const targetTabId = event.target.getAttribute('aria-controls');
         switch (targetTabId) {
             case 'tab1':
-                fetchBalanceAndDebt();
-                document.getElementById('tab1-image').style.display = 'block';
-                document.getElementById('tab2-image').style.display = 'none';
+                if ('${game.status}' !== 'FINISHED') {
+                    fetchBalanceAndDebt();
+                    document.getElementById('tab1-image').style.display = 'block';
+                }
                 break;
             case 'tab2':
                 fetchData();
-                document.getElementById('tab1-image').style.display = 'none';
-                // document.getElementById('tab2-image').style.display = 'block';
+                if (document.getElementById('tab1-image') != null) {
+                    document.getElementById('tab1-image').style.display = 'none';
+                }
                 break;
             case 'tab3':
+            <#assign competitorsLen = competitors?size>
+            <#if (competitorsLen > 0)>
             <#list competitors as competitor>
                 getChartDataFromItem(${competitor.id}, charts['${competitor.id}']);
             </#list>
+            </#if>
                 break;
             default:
                 break;
@@ -531,11 +587,14 @@
     });
 
     // Загрузить данные при загрузке страницы
-    fetchBalanceAndDebt();
+    if ('${game.status}' !== 'FINISHED') {
+        fetchBalanceAndDebt();
+    }
 
 
-    document.getElementById('tab1-image').style.display = 'block';
-    // document.getElementById('tab2-image').style.display = 'none';
+    if (document.getElementById('tab1-image') != null) {
+        document.getElementById('tab1-image').style.display = 'block';
+    }
 </script>
 </body>
 </html>
