@@ -19,7 +19,6 @@ import ru.itis.diploma.security.details.AccountUserDetails;
 import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.GameService;
 import ru.itis.diploma.service.ManufacturerService;
-import ru.itis.diploma.util.EconomicIndicatorsCalculator;
 
 import java.util.List;
 
@@ -30,7 +29,6 @@ public class ManufacturerController {
     private final ManufacturerService manufacturerService;
     private final AccountService accountService;
     private final GameService gameService;
-    private final EconomicIndicatorsCalculator economicIndicatorsCalculator;
 
     @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/game/{id}/initial-production-parameters")
@@ -86,7 +84,7 @@ public class ManufacturerController {
 
     @ResponseBody
     @GetMapping("/game/{id}/financial-status/{accountId}")
-    //@PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     public ManufacturerFinancialStatus getAccountGames(@PathVariable("id") Long gameId,
                                                        @PathVariable Long accountId) {
         var game = gameService.getGameById(gameId);

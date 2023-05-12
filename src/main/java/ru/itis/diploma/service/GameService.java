@@ -22,4 +22,6 @@ public interface GameService {
     void finishGame(Long id);
 
     List<GameResult> getGameResults(Game game);
+
+    boolean existActiveGame();
 }

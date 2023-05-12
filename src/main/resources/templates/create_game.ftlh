@@ -48,7 +48,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid h-custom" style="margin-top: 30px; margin-bottom: 320px">
+    <div class="container-fluid h-custom" style="margin-top: 30px; margin-bottom:750px">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
                 <form action="/game" method="post">
@@ -57,7 +57,6 @@
                     </div>
 
                     <div class="form-outline mb-4">
-                        <#--                        <label for="name">Наименование игры</label>-->
                         <input class="form-control form-control-lg" type="text" id="name" name="name"
                                placeholder="Наименование игры">
                     </div>
@@ -105,14 +104,29 @@
                                placeholder="Цена рекламы">
                     </div>
 
-                    <#--                    <div class="form-outline mb-4">-->
-                    <#--                        <input class="form-control form-control-lg" type="number" name="requiredQuantity"-->
-                    <#--                               placeholder="Спрос покупателя(необходимое количество продукции)">-->
-                    <#--                    </div>-->
+                    <div class="form-outline mb-4">
+                        <input class="form-control form-control-lg" type="number" name="purchaseLimit"
+                               placeholder="Величина насыщения покупателя">
+                    </div>
+
+                    <div class="form-outline mb-4">
+                        <input class="form-control form-control-lg" type="number" step="any" name="dailySpendingLimit"
+                               placeholder="Максимальная ежедневная сумма средств покупателя">
+                    </div>
+
+                    <div class="form-outline mb-4">
+                        <input class="form-control form-control-lg" type="number" name="absoluteQualityProductLife"
+                               placeholder="Срок эксплуатации абсолютно качественного товара в днях">
+                    </div>
+
+                    <div class="form-outline mb-4">
+                        <input class="form-control form-control-lg" type="number" name="habitTrackingDays"
+                               placeholder="Количество дней для расчета привыкания покупателя">
+                    </div>
 
                     <h5>Выберите веса для модели покупателя:</h5>
                     <small style="margin-top: 10px">Чем выше вес, тем большее влияние будет оказывать соответствующий
-                        параметр для покупателя при выборе производителя.</small>
+                        параметр при выборе производителя.</small>
                     <div style="margin-top: 10px">
                         <div class="form-outline mb-4">
                             <input class="form-control form-control-lg validate-weights" required type="number" min="0"
@@ -130,7 +144,13 @@
                             <input class="form-control form-control-lg validate-weights" required type="number" min="0"
                                    max="1" step="0.01"
                                    id="advertisementWeight" name="advertisementWeight"
-                                   placeholder="Вес качества">
+                                   placeholder="Вес рекламы">
+                        </div>
+                        <div class="form-outline mb-4">
+                            <input class="form-control form-control-lg validate-weights" required type="number" min="0"
+                                   max="1" step="0.01"
+                                   id="habitWeight" name="habitWeight"
+                                   placeholder="Вес привыкания покупателя к производителю">
                         </div>
                         <div class="error" style="color: red" id="error"></div>
                     </div>
@@ -145,6 +165,12 @@
                         </select>
                     </div>
 
+                    <#if errorMessage??>
+                        <div class="alert alert-danger" role="alert">
+                            ${errorMessage}
+                        </div>
+                    </#if>
+
                     <div class="text-center text-lg-start mt-10 pt-6">
                         <label>
                             <input class="btn btn-primary btn-lg"
@@ -154,12 +180,6 @@
                 </form>
             </div>
             <div class="col-md-9 col-lg-6 col-xl-5">
-                <#--                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
-                <#--                <img src="https://www.advgazeta.ru/upload/iblock/42d/kak_predprinimatelyam_nachat_2023_god.jpg"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
-                <#--                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.svg"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
                 <img src="https://sun9-9.userapi.com/impg/M6YIz5fS_4YMoiHLVzrebf_YFdge0aNdmDF1vg/Vf1Cc5-ixmw.jpg?size=1087x840&quality=96&sign=d607b47217efe3197ce2dd2e9b8ca53e&type=album"
                      class="img-fluid" alt="Sample image">
             </div>
@@ -177,6 +197,7 @@
     const assortmentWeightInput = document.getElementById('assortmentWeight');
     const qualityWeightInput = document.getElementById('qualityWeight');
     const advertisementWeightInput = document.getElementById('advertisementWeight');
+    const habitWeightInput = document.getElementById('habitWeight');
     const error = document.getElementById('error');
     const errorElement = document.querySelector('.error');
 
@@ -184,7 +205,8 @@
         const assortmentWeight = +assortmentWeightInput.value || 0;
         const qualityWeight = +qualityWeightInput.value || 0;
         const advertisementWeight = +advertisementWeightInput.value || 0;
-        const sum = assortmentWeight + qualityWeight + advertisementWeight;
+        const habitWeight = +habitWeightInput.value || 0;
+        const sum = assortmentWeight + qualityWeight + advertisementWeight + habitWeight;
 
         if (sum !== 1) {
             error.innerHTML = 'Сумма весов должна быть равна 1';
@@ -200,6 +222,8 @@
     assortmentWeightInput.addEventListener('input', validateInputs);
     qualityWeightInput.addEventListener('input', validateInputs);
     advertisementWeightInput.addEventListener('input', validateInputs);
+    habitWeightInput.addEventListener('input', validateInputs);
 </script>
+
 </body>
 </html>

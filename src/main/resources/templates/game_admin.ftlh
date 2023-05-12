@@ -55,20 +55,27 @@
         <div class="row" style="margin-top: 20px">
             <div class="col-4">
                 <p>Модельное время(Длительность 1 суток) - ${game.timeUnit} мин</p>
-                <p>Базовая себестоимость производства единицы продукции - ${game.baseCostPrice}</p>
-                <p>Базовая цена рекламы - ${game.baseAdvertisementPrice}</p>
-                <p>Цена создания единицы мощности производства - ${game.productPower}</p>
+                <p>Базовая себестоимость производства единицы продукции - ${game.baseCostPrice} руб</p>
+                <p>Базовая цена рекламы - ${game.baseAdvertisementPrice} руб</p>
+                <p>Цена создания единицы мощности производства - ${game.productPower} руб</p>
+                <p>Срок эксплуатации абсолютно качественного товара - ${game.absoluteQualityProductLife} дней</p>
             </div>
+
+            <div class="col-4">
+                <p>Величина насыщения покупателя - ${game.purchaseLimit} ед.</p>
+                <p>Максимальная ежедневная сумма средств покупателя - ${game.dailySpendingLimit} ед.</p>
+                <p>Период для расчета привыкания покупателя - ${game.habitTrackingDays} дней</p>
+                <p>Вес ассортимента - ${game.assortmentWeight}</p>
+                <p>Вес рекламы - ${game.advertisementWeight}</p>
+                <p>Вес качества - ${game.qualityWeight}</p>
+                <p>Вес привыкания покупателя к производителю - ${game.habitWeight}</p>
+            </div>
+
             <div class="col-4">
                 <p>Налог с продаж - ${game.salesTax}%</p>
                 <p>Процентная ставка инвестиционного кредита - ${game.interestRateInvestmentCredit}%</p>
                 <p>Срок инвестиционного кредита - ${game.interestRateInvestmentCredit} мес</p>
                 <p>Процентная ставка оборотного кредита - ${game.interestRateInvestmentCredit}%</p>
-            </div>
-            <div class="col-4">
-                <p>Вес ассортимента - ${game.assortmentWeight}</p>
-                <p>Вес рекламы - ${game.advertisementWeight}</p>
-                <p>Вес качества - ${game.qualityWeight}</p>
             </div>
         </div>
         <#if game.status != 'FINISHED'>
@@ -104,11 +111,9 @@
                 </div>
 
                 <div class="row">
-                    <#--                <div class="col-md-4">-->
                     <div class="col-md-4 d-flex justify-content-center">
                         <button id="refreshButton" class="btn btn-primary">Обновить таблицу</button>
                     </div>
-                    <#--                <#if game.status != 'FINISHED'>-->
 
                     <div class="col-md-4 d-flex justify-content-center">
                         <button id="schedulerButton" class="btn btn-success" onclick="toggleScheduler()">
@@ -123,9 +128,7 @@
                             </button>
                         </form>
                     </div>
-                    <#--                </div>-->
                 </div>
-                <#--                </div>-->
             </div>
         <#else>
             <div class="col-md-12" style="margin-top: 50px">
@@ -154,7 +157,6 @@
         </#if>
     </div>
 </div>
-<#--</div>-->
 <footer class="footer d-flex flex-column flex-md-row text-center text-md-start justify-content-between py-4 px-4 px-xl-5 bg-primary">
     <div class="text-white mb-3">
         Copyright © 2023. All rights reserved.

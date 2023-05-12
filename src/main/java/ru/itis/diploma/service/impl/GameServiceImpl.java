@@ -52,7 +52,11 @@ public class GameServiceImpl implements GameService {
             .assortmentWeight(gameDto.getAssortmentWeight())
             .advertisementWeight(gameDto.getAdvertisementWeight())
             .qualityWeight(gameDto.getQualityWeight())
-            //.requiredQuantity(gameDto.getRequiredQuantity())
+            .purchaseLimit(gameDto.getPurchaseLimit())
+            .habitWeight(gameDto.getHabitWeight())
+            .dailySpendingLimit(gameDto.getDailySpendingLimit())
+            .absoluteQualityProductLife(gameDto.getAbsoluteQualityProductLife())
+            .habitTrackingDays(gameDto.getHabitTrackingDays())
             .build();
         gameRepository.save(newGame);
         createManufacturers(newGame, gameDto.getAccountIds());
@@ -125,6 +129,11 @@ public class GameServiceImpl implements GameService {
 //                (oldValue, newValue) -> oldValue,
 //                LinkedHashMap::new
 //            ));
+    }
+
+    @Override
+    public boolean existActiveGame() {
+        return gameRepository.findFirstByStatusNot(GameStatus.FINISHED).isPresent();
     }
 
     private BigDecimal calculateFinishFinancialStatus(Manufacturer manufacturer, Game game) {

@@ -16,13 +16,10 @@
         }
 
         .profile {
-            /*width: 100%;*/
-            /*max-width: 400px;*/
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            /*text-align: center;*/
         }
 
         html {
@@ -39,13 +36,6 @@
     </style>
 </head>
 <body onload="loadAllGames()">
-<#--<h1>Мой профиль</h1>-->
-<#--<p>Полное имя: ${account.fullName!}</p>-->
-<#--<p>Почта: ${account.email!}</p>-->
-<#--<a class="btn btn-outline-primary" href="/profile/edit" role="button">Редактировать профиль</a>-->
-<#--<a class="btn btn-outline-primary" href="/game" role="button">Новая игра</a>-->
-<#--<a class="btn btn-outline-primary" href="/games" role="button">Все игры</a>-->
-<#--<a class="btn btn-outline-primary" href="/logout" role="button">Выход</a>-->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">Economic Concurrent Game</a>
@@ -64,7 +54,6 @@
 </nav>
 
 <div class="container-fluid" style="height: 528px; margin: 120px auto auto;">
-    <#--    <div class="profile">-->
     <div class="row justify-content-center" style="margin-left: 50px; margin-right: 50px">
         <div class="col-4">
             <div class="profile">
@@ -72,10 +61,6 @@
                     <img class="photo" width="320" height="320" style="border-radius: 50%"
                          src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild3032-3831-4363-a263-653865336130__clip-school-assignme.png"
                          alt="">
-                    <#--                    <img class="photo" width="320" height="320"-->
-                    <#--                         src="https://png.pngtree.com/png-vector/20190729/ourlarge/pngtree-avatar-user-basic-blue-icon-on-abstract-cloud-background-png-image_1624568.jpg"-->
-                    <#--                         alt="">-->
-
                     <p class="fw-bold h4 mt-3">Имя: ${account.fullName!}</p>
                     <p class="fw-bold h4 mt-3">Почта: ${account.email!}</p>
                     <div style="margin-top:20px">
@@ -119,7 +104,6 @@
 
 <script>
     function loadAllGames() {
-        // Выполнить HTTP-запрос для загрузки данных
         fetch('http://localhost:80/games')
             .then(response => response.json())
             .then(data => {
@@ -151,7 +135,6 @@
                     cell4.appendChild(button);
                 });
             });
-
     }
 </script>
 </body>

@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Entity
 public class BusinessCreditPayment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,9 +33,5 @@ public class BusinessCreditPayment {
     private BigDecimal amount;
 
     private BigDecimal nextAmount;
-//    private BigDecimal principalPayment;
-//
-//    private BigDecimal interestAmount;
-
 
 }

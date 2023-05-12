@@ -58,10 +58,6 @@
             <div class="col-md-9 col-lg-6 col-xl-5">
                 <img src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild3937-3165-4638-b563-346662343136__clip-online-business.png"
                      class="img-fluid" alt="Sample image">
-                <#--                <img src="https://courseburg.ru/obuchenie_personala_v_organizacii/images/tild6630-3334-4334-b536-656466636162__clip-businessman-wor.png"-->
-                <#--                     width="1550" height="1550" class="img-fluid" alt="Sample image">-->
-                <#--                <img src="https://www.advgazeta.ru/upload/iblock/42d/kak_predprinimatelyam_nachat_2023_god.jpg"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
             </div>
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
                 <form action="/sign-up" method="post">
@@ -72,19 +68,16 @@
                         <h2 class="fw-normal mb-0 me-3">Регистрация</h2>
                     </div>
 
-                    <!-- Full name input -->
                     <div class="form-outline mb-4">
                         <@spring.formInput "signUpForm.fullName" "class='form-control form-control-lg' id='form3Example3' placeholder='Введите ФИО'"/>
                         <@spring.showErrors "<br>" "error"/>
                     </div>
 
-                    <!-- Email input -->
                     <div class="form-outline mb-4">
                         <@spring.formInput "signUpForm.email" "class='form-control form-control-lg' id='form3Example3' placeholder='Введите адресс электронной почты'"/>
                         <@spring.showErrors "<br>" "error"/>
                     </div>
 
-                    <!-- Password input -->
                     <div class="form-outline mb-3">
                         <@spring.formPasswordInput "signUpForm.password" "class='form-control form-control-lg' id='form3Example4' placeholder='Введите пароль'"/>
                         <@spring.showErrors "<br>" "error"/>

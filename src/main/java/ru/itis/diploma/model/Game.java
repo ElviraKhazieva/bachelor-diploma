@@ -59,6 +59,14 @@ public class Game {
 
     private BigDecimal advertisementWeight;
 
-//    private Integer requiredQuantity; // спрос покупателя (то, сколько покупателю нужно купить) 15 ед нужно купить
+    private BigDecimal habitWeight;
+
+    private Integer habitTrackingDays;
+
+    private Integer purchaseLimit; // величина насыщения покупателя(по наличии такого количества товаров покупатель перестает совершать покупки до тех пор, пока не появилась необходимость купить новые товары по причине изношенности имеющихся)
+
+    private BigDecimal dailySpendingLimit; // сумме средств покупателя в день, которые он может потратить на покупки, максимум ежедневных трат
+
+    private Integer absoluteQualityProductLife; // срок эксплуатации для абсолютно качетственного товара(индекс кач-ва = 1)
 
 }

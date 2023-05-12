@@ -14,6 +14,7 @@ import ru.itis.diploma.dto.CreateGameDto;
 import ru.itis.diploma.dto.GameDto;
 import ru.itis.diploma.dto.ManufacturerParameters;
 import ru.itis.diploma.model.Account;
+import ru.itis.diploma.model.Advertisement;
 import ru.itis.diploma.security.details.AccountUserDetails;
 import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.GameService;
@@ -44,8 +45,14 @@ public class GameController {
 
     @PostMapping("/game")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public String createGame(CreateGameDto gameDto) {
-        gameService.createGame(gameDto);
+    public String createGame(CreateGameDto gameDto, Model model) {
+        if (!gameService.existActiveGame()) {
+            gameService.createGame(gameDto);
+        } else {
+            model.addAttribute("accounts", accountService.getAccountsForNewGame());
+            model.addAttribute("errorMessage", "Невозможно создать новую игру, поскольку уже есть активная игра.");
+            return "create_game";
+        }
         return "redirect:/profile";
     }
 
@@ -60,7 +67,6 @@ public class GameController {
         model.addAttribute("account", account);
 
         if (FINISHED.equals(game.getStatus())) {
-            System.out.println(gameService.getGameResults(game));
             model.addAttribute("gameResults", gameService.getGameResults(game));
         }
 
@@ -79,14 +85,15 @@ public class GameController {
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .map(p -> {
-                        var advertisement = manufacturerService.getLastAdvertisement(manufacturer.getId()).get();
+                        Optional<Advertisement> lastAdvertisement = manufacturerService.getLastAdvertisement(manufacturer.getId());
+                        var advertisingIntensityIndex = lastAdvertisement.isPresent() ? lastAdvertisement.get().getIntensityIndex() : 0;
                         return ManufacturerParameters.builder()
                             .id(p.getManufacturer().getId())
                             .fullName(p.getManufacturer().getAccount().getFullName())
                             .assortment(p.getAssortment())
                             .price(p.getPrice())
                             .qualityIndex(p.getQualityIndex())
-                            .advertisingIntensityIndex(advertisement.getIntensityIndex())
+                            .advertisingIntensityIndex(advertisingIntensityIndex)
                             .build();
                     })
                     .toList());
@@ -111,22 +118,18 @@ public class GameController {
     @GetMapping("/{accountId}/games")
     @PreAuthorize("hasAuthority('USER')")
     public List<GameDto> getAccountGames(@PathVariable Long accountId) {
-//        model.addAttribute("games",
         return gameService.getAccountGames(accountId).stream()
             .sorted(Comparator.comparing(GameDto::getStartDate).reversed())
             .toList();
-//        return "account_games";
     }
 
     @ResponseBody
     @GetMapping("/games")
     @PreAuthorize("hasAuthority('ADMIN')")
     public List<GameDto> getAllGamesPage() {
-//        model.addAttribute("games",
         return gameService.getAllGames().stream()
             .sorted(Comparator.comparing(GameDto::getStartDate).reversed())
             .toList();
-//        return "all_games";
     }
 
 

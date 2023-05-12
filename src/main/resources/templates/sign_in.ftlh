@@ -52,12 +52,6 @@
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-9 col-lg-6 col-xl-5">
-                <#--                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
-                <#--                <img src="https://www.advgazeta.ru/upload/iblock/42d/kak_predprinimatelyam_nachat_2023_god.jpg"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
-                <#--                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.svg"-->
-                <#--                     class="img-fluid" alt="Sample image">-->
                 <img src="https://uploads-ssl.webflow.com/5d5b41242fb63c7dd72ca703/5d7093ed6d5a38317cdb06f3_undraw_unlock_24mb.svg"
                      class="img-fluid" alt="Sample image">
             </div>

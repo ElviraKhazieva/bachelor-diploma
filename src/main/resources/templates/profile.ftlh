@@ -11,18 +11,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /*min-height: 100vh;*/
             justify-content: center;
         }
 
         .profile {
-            /*width: 100%;*/
-            /*max-width: 400px;*/
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            /*text-align: center;*/
         }
 
         html {
@@ -34,7 +30,7 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 60px; /* Высота футера */
+            height: 60px;
         }
     </style>
 </head>
@@ -57,7 +53,6 @@
 </nav>
 
 <div class="container-fluid" style="height: 528px; margin: 120px auto auto;">
-    <#--    <div class="profile">-->
     <div class="row justify-content-center" style="margin-left: 50px; margin-right: 50px">
         <div class="col-4">
             <div class="profile">

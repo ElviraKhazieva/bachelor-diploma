@@ -33,12 +33,21 @@ public class CreateGameDto {
     //Сумма средств, необходимых для производства еще одной единицы продукции
     private BigDecimal productPower; // цена создания единицы мощности производства (цена станка)
 
-    //    private Integer requiredQuantity;
     private BigDecimal assortmentWeight;
 
     private BigDecimal qualityWeight;
 
     private BigDecimal advertisementWeight;
+
+    private BigDecimal habitWeight;
+
+    private Integer habitTrackingDays;
+
+    private Integer purchaseLimit;
+
+    private BigDecimal dailySpendingLimit;
+
+    private Integer absoluteQualityProductLife;
 
     private List<Long> accountIds;
 

@@ -252,9 +252,9 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     public List<ManufacturerParameters> getAllProductionParameters(Manufacturer manufacturer) {
         return productionParametersRepository.findByManufacturerId(manufacturer.getId()).stream()
             .map(productionParameters -> {
-                var advertisement = advertisementRepository.findByManufacturerIdAndStartDate(
+                var advertisementOptional = advertisementRepository.findByManufacturerIdAndStartDate(
                     manufacturer.getId(), productionParameters.getStartDate() + 1);
-                return ManufacturerParameters.builder()
+                var manufacturerParameters = ManufacturerParameters.builder()
                     .startDate(productionParameters.getStartDate())
                     .timeToMarket(productionParameters.getTimeToMarket())
                     .costPrice(productionParameters.getCostPrice())
@@ -265,11 +265,15 @@ public class ManufacturerServiceImpl implements ManufacturerService {
                     .qualityIndex(productionParameters.getQualityIndex())
                     .businessCreditAmount(productionParameters.getBusinessCreditAmount())
                     .interestRateBusinessCredit(productionParameters.getInterestRateBusinessCredit())
-                    .advertisingStartDate(advertisement.getStartDate())
-                    .advertisingEndDate(advertisement.getEndDate())
-                    .advertisingIntensityIndex(advertisement.getIntensityIndex())
-                    .advertisingCost(advertisement.getCost())
                     .build();
+                if (advertisementOptional.isPresent()) {
+                    var advertisement = advertisementOptional.get();
+                    manufacturerParameters.setAdvertisingStartDate(advertisement.getStartDate());
+                    manufacturerParameters.setAdvertisingEndDate(advertisement.getEndDate());
+                    manufacturerParameters.setAdvertisingIntensityIndex(advertisement.getIntensityIndex());
+                    manufacturerParameters.setAdvertisingCost(advertisement.getCost());
+                }
+                return manufacturerParameters;
             }).sorted(Comparator.comparing(ManufacturerParameters::getStartDate).reversed())
             .toList();
     }
@@ -280,14 +284,16 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     }
 
     private void saveAdvertisement(Manufacturer manufacturer, CommonProductionParameters productionParameters) {
-        var advertisement = Advertisement.builder()
-            .manufacturer(manufacturer)
-            .cost(productionParameters.getAdvertisingCost())
-            .intensityIndex(productionParameters.getAdvertisingIntensityIndex())
-            .startDate(Game.currentDay + 1)
-            .endDate(Game.currentDay + productionParameters.getAdvertisingDays())
-            .build();
-        advertisementRepository.save(advertisement);
+        if (productionParameters.getAdvertisingIntensityIndex() != 0 && productionParameters.getAdvertisingDays() != 0) {
+            var advertisement = Advertisement.builder()
+                .manufacturer(manufacturer)
+                .cost(productionParameters.getAdvertisingCost())
+                .intensityIndex(productionParameters.getAdvertisingIntensityIndex())
+                .startDate(Game.currentDay + 1)
+                .endDate(Game.currentDay + productionParameters.getAdvertisingDays())
+                .build();
+            advertisementRepository.save(advertisement);
+        }
     }
 
     /**

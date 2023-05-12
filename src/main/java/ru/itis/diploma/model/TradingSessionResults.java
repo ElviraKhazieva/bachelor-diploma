@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-//по ней можно определять выручку производителей
 public class TradingSessionResults {
 
     @Id
@@ -32,5 +31,9 @@ public class TradingSessionResults {
     private Integer productNumber; //количество проданных товаров
 
     private BigDecimal price; //цена товара
+
+    private BigDecimal qualityIndex;
+
+    private Boolean isWornOut; // изношенный товар
 
 }

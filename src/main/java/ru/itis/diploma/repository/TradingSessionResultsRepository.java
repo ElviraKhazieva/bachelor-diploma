@@ -2,6 +2,7 @@ package ru.itis.diploma.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.itis.diploma.model.TradingSessionResults;
 
 import java.math.BigDecimal;
@@ -14,4 +15,12 @@ public interface TradingSessionResultsRepository extends JpaRepository<TradingSe
     BigDecimal getPurchasesTotal(Long manufacturerId, Integer from, Integer to);
 
     List<TradingSessionResults> findByManufacturerId(Long manufacturerId);
+
+    @Query("SELECT SUM(t.productNumber) FROM TradingSessionResults t WHERE t.manufacturer.game.id = :gameId AND t.isWornOut = false")
+    Integer getUnwornProductsCountByGameId(@Param("gameId") Long gameId);
+
+    List<TradingSessionResults> findByTradeDateGreaterThanEqualAndManufacturerIdIn(int startDate, List<Long> manufacturerIds);
+
+    @Query("SELECT t FROM TradingSessionResults t WHERE t.productNumber > 0")
+    List<TradingSessionResults> findAllByProductNumberGreaterThanZero();
 }
