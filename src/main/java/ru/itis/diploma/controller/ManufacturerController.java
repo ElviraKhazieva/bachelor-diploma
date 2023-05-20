@@ -55,8 +55,8 @@ public class ManufacturerController {
         var game = gameService.getGameById(gameId);
         if (notValidAdvertisingParameters(newProductionParameters)) {
             model.addAttribute("game", game);
-            model.addAttribute("balance", manufacturerService.getManufacturerByAccountIdAndGameId(
-                userDetails.getAccount().getId(), gameId).getBalance());
+            model.addAttribute("manufacturer", manufacturerService.getManufacturerByAccountIdAndGameId(
+                userDetails.getAccount().getId(), gameId));
             model.addAttribute("errorMessage", "Некорректные параметры рекламы");
             return "define_new_production_params";
         }
@@ -70,8 +70,8 @@ public class ManufacturerController {
                                                 Model model) {
         var game = gameService.getGameById(gameId);
         model.addAttribute("game", game);
-        model.addAttribute("balance", manufacturerService.getManufacturerByAccountIdAndGameId(
-            userDetails.getAccount().getId(), gameId).getBalance());
+        model.addAttribute("manufacturer", manufacturerService.getManufacturerByAccountIdAndGameId(
+            userDetails.getAccount().getId(), gameId));
         return "define_new_production_params";
     }
 
@@ -89,6 +89,12 @@ public class ManufacturerController {
                                                        @PathVariable Long accountId) {
         var game = gameService.getGameById(gameId);
         return manufacturerService.getManufacturerFinancialStatus(game, accountId);
+    }
+
+    @ResponseBody
+    @GetMapping("/manufacturer/{id}/competitors-data")
+    public List<ManufacturerParameters> getCompetitorsData(@PathVariable Long id) {
+        return manufacturerService.getCompetitorsData(id);
     }
 
     private boolean notValidAdvertisingParameters(CommonProductionParameters commonProductionParameters) {

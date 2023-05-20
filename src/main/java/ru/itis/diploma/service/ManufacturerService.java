@@ -44,4 +44,6 @@ public interface ManufacturerService {
     BigDecimal calculateManufacturerBusinessCreditDebt(Manufacturer manufacturer);
 
     List<ManufacturerParameters> getAllProductionParameters(Manufacturer manufacturer);
+
+    List<ManufacturerParameters> getCompetitorsData(Long id);
 }

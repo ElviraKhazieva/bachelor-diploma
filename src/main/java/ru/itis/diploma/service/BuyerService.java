@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.itis.diploma.model.Game;
 import ru.itis.diploma.model.Manufacturer;
 import ru.itis.diploma.model.ProductionParameters;
+import ru.itis.diploma.model.StatisticsInfo;
 import ru.itis.diploma.model.TradingSessionResults;
 import ru.itis.diploma.repository.ManufacturerRepository;
 import ru.itis.diploma.repository.TradingSessionResultsRepository;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static ru.itis.diploma.service.CronService.MANUFACTURER_STATISTICS_INFO;
 import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_CURRENT_PRODUCT_COUNT;
 import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_REVENUE;
 
@@ -60,6 +62,9 @@ public class BuyerService {
                 .isWornOut(false)
                 .build();
             tradingSessionResultsList.add(tradingSessionResults);
+            StatisticsInfo statisticsInfo = MANUFACTURER_STATISTICS_INFO.get(productionParameters.getManufacturer().getId());
+            statisticsInfo.setProductsSold(purchaseQuantity);
+            statisticsInfo.setPrice(productionParameters.getPrice());
 
             if (purchaseQuantity > 0) {
                 logger.info("ПОКУПАЮ {} ТОВАРОВ", purchaseQuantity);

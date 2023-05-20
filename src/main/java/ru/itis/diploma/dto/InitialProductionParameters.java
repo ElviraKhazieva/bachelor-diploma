@@ -15,4 +15,6 @@ public class InitialProductionParameters extends CommonProductionParameters {
 
     private BigDecimal investmentCreditAmount;
 
+    private Integer productionCapacityPerDay;
+
 }

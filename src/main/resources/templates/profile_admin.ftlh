@@ -122,7 +122,9 @@
                     const cell1 = row.insertCell(1);
                     cell1.innerHTML = new Date(item.startDate).toLocaleString();
                     const cell2 = row.insertCell(2);
-                    cell2.innerHTML = item.endDate;
+                    if (item.endDate != null) {
+                        cell2.innerHTML = new Date(item.endDate).toLocaleString();
+                    }
                     const cell3 = row.insertCell(3);
                     cell3.innerHTML = item.status;
                     const cell4 = row.insertCell(4)

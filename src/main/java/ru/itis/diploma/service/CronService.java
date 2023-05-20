@@ -6,12 +6,15 @@ import ru.itis.diploma.model.Advertisement;
 import ru.itis.diploma.model.Game;
 import ru.itis.diploma.model.Manufacturer;
 import ru.itis.diploma.model.ProductionParameters;
+import ru.itis.diploma.model.StatisticsInfo;
 import ru.itis.diploma.model.TradingSessionResults;
+import ru.itis.diploma.repository.StatisticsInfoRepository;
 import ru.itis.diploma.repository.TradingSessionResultsRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +30,9 @@ public class CronService {
     private final TradingSessionResultsRepository tradingSessionResultsRepository;
     private final BuyerService buyerService;
     private final PaymentService paymentService;
+    private final StatisticsInfoRepository statisticsInfoRepository;
+
+    public static Map<Long, StatisticsInfo> MANUFACTURER_STATISTICS_INFO = new HashMap<>();
 
     public void doDaysActivities(Game game) {
         Game.currentDay++;
@@ -48,24 +54,50 @@ public class CronService {
         produceManufacturersProductsToMarket(productionParametersList);
         buyerService.makePurchases(game, productionParametersList);
         paymentService.makePayments(game);
+        setCurrentCreditDebtsAndBalanceToStatisticsInfo(game);
+        statisticsInfoRepository.saveAll(MANUFACTURER_STATISTICS_INFO.values());
+    }
+
+    private void setCurrentCreditDebtsAndBalanceToStatisticsInfo(Game game) {
+        var manufacturers = manufacturerService.getGameManufacturers(game.getId());
+        manufacturers.forEach(m -> {
+            StatisticsInfo statisticsInfo = MANUFACTURER_STATISTICS_INFO.get(m.getId());
+            statisticsInfo.setBalance(m.getBalance());
+            statisticsInfo.setCurrentInvestmentCreditDebtAmount(manufacturerService.calculateManufacturerInvestmentCreditDebt(m, game));
+            statisticsInfo.setCurrentBusinessCreditDebtAmount(manufacturerService.calculateManufacturerBusinessCreditDebt(m));
+        });
     }
 
     private void produceManufacturersProductsToMarket(List<ProductionParameters> productionParametersList) {
         for (ProductionParameters productionParameters : productionParametersList) {
+            var statisticsInfo = new StatisticsInfo();
+            statisticsInfo.setManufacturer(productionParameters.getManufacturer());
+            statisticsInfo.setProductionCapacityPerDay(productionParameters.getProductionCapacityPerDay());
             var timeToMarket = productionParameters.getTimeToMarket();
+            var productsProduced = 0;
             MANUFACTURER_CURRENT_PRODUCT_COUNT.putIfAbsent(productionParameters.getManufacturer().getId(), 0);// либо вернет прошлое значение либо положит 0
             if ((Game.currentDay - productionParameters.getStartDate()) <= timeToMarket) {
                 if ((productionParameters.getStartDate() + timeToMarket) == Game.currentDay) {
+                    productsProduced = productionParameters.getProductCount() - (timeToMarket - 1) *
+                        productionParameters.getProductionCapacityPerDay();
                     MANUFACTURER_CURRENT_PRODUCT_COUNT.put(productionParameters.getManufacturer().getId(),
                         MANUFACTURER_CURRENT_PRODUCT_COUNT.get(productionParameters.getManufacturer().getId()) +
-                            (productionParameters.getProductCount() - (timeToMarket - 1) *
-                                productionParameters.getProductionCapacityPerDay()));
+                            productsProduced);
                 } else {
+                    productsProduced = productionParameters.getProductionCapacityPerDay();
                     MANUFACTURER_CURRENT_PRODUCT_COUNT.put(productionParameters.getManufacturer().getId(),
                         MANUFACTURER_CURRENT_PRODUCT_COUNT.get(productionParameters.getManufacturer().getId()) +
-                            productionParameters.getProductionCapacityPerDay());
+                            productsProduced);
                 }
             }
+            statisticsInfo.setProductsProduced(productsProduced);
+            statisticsInfo.setTradeDate(Game.currentDay);
+            statisticsInfo.setPaidTaxesAmount(BigDecimal.ZERO);
+            statisticsInfo.setCurrentInvestmentCreditDebtAmount(BigDecimal.ZERO);
+            statisticsInfo.setCurrentBusinessCreditDebtAmount(BigDecimal.ZERO);
+            statisticsInfo.setRepaidInvestmentCreditAmount(BigDecimal.ZERO);
+            statisticsInfo.setRepaidBusinessCreditAmount(BigDecimal.ZERO);
+            MANUFACTURER_STATISTICS_INFO.put(productionParameters.getManufacturer().getId(), statisticsInfo);
         }
     }
 

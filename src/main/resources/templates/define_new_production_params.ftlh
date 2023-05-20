@@ -43,34 +43,35 @@
 <div class="container" style="margin: 100px auto auto;">
     <form class="row g-3 color-rect-border" method="post" action="/game/${game.id}/production-parameters">
         <h1 style="text-align: center">Определите новые параметры производства</h1>
-        <h4 style="margin-top: 25px">Ваш баланс: ${balance}</h4>
+        <h4 style="margin-top: 25px">Ваш баланс: ${manufacturer.balance}</h4>
+        <h4 style="margin-top: 10px">Ваша мощность производства: ${manufacturer.productionCapacityPerDay} ед/сутки</h4>
         <div class="row g-3">
             <h4 style="margin-top: 10px">Параметры производимой продукции:</h4>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="productCount" onchange="calculateMaxOfAdvertisingDays()" class="form-label">Количество
                     продукции</label>
                 <input type="number" class="form-control" min="1" name="productCount" id="productCount" value="1">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="assortment" class="form-label">Ассортимент</label>
                 <input type="number" class="form-control" min="1" name="assortment" id="assortment" value="1">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="qualityIndex" class="form-label">Индекс качества</label>
                 <input type="number" class="form-control" min="0" max="1" step="any" name="qualityIndex"
                        id="qualityIndex"
                        value="0">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label for="price" class="form-label">Цена единицы продукции</label>
                 <input type="number" class="form-control" min="0" step="any" name="price" id="price" value="0">
             </div>
-            <div class="col-md-6">
-                <label for="productionCapacityPerDay" onchange="calculateMaxOfAdvertisingDays()" class="form-label">Мощность
-                    производства(ед/сутки)</label>
-                <input type="number" class="form-control" min="1" name="productionCapacityPerDay"
-                       id="productionCapacityPerDay" value="1">
-            </div>
+            <#--            <div class="col-md-6">-->
+            <#--                <label for="productionCapacityPerDay" onchange="calculateMaxOfAdvertisingDays()" class="form-label">Мощность-->
+            <#--                    производства(ед/сутки)</label>-->
+            <#--                <input type="number" class="form-control" min="1" name="productionCapacityPerDay"-->
+            <#--                       id="productionCapacityPerDay" value="1">-->
+            <#--            </div>-->
         </div>
 
         <div class="row g-3">
@@ -150,9 +151,9 @@
     productionCosts.addEventListener('input', calculateBusinessCreditAmount);
     productionCosts.addEventListener('blur', calculateBusinessCreditAmount);
 
-    var productionCapacityPerDay = document.getElementById('productionCapacityPerDay');
-    productionCapacityPerDay.addEventListener('input', calculate);
-    productionCapacityPerDay.addEventListener('input', calculateMaxOfAdvertisingDays);
+    var productionCapacityPerDay = ${manufacturer.productionCapacityPerDay};
+    // productionCapacityPerDay.addEventListener('input', calculate);
+    // productionCapacityPerDay.addEventListener('input', calculateMaxOfAdvertisingDays);
     var advertisingIntensityIndex = document.getElementById('advertisingIntensityIndex');
     advertisingIntensityIndex.addEventListener('input', calculate);
     var advertisingDays = document.getElementById('advertisingDays');
@@ -162,13 +163,13 @@
 
     //ограничение количества дней рекламы циклом производства (time to market)
     function calculateMaxOfAdvertisingDays() {
-        let timeToMarket = Math.ceil(Number(productCount.value) / (Math.ceil(Number(productionCapacityPerDay.value) / M) * M));
+        let timeToMarket = Math.ceil(Number(productCount.value) / (Math.ceil(Number(productionCapacityPerDay) / M) * M));
         document.getElementById('timeToMarket').value = timeToMarket.toString();
         advertisingDays.setAttribute("max", timeToMarket.toString())
     }
 
     function calculateBusinessCreditAmount() {
-        const balance = "${balance}".replace(/\s/g, '').replace(/,/, '.');
+        const balance = "${manufacturer.balance}".replace(/\s/g, '').replace(/,/, '.');
         let minBusinessCreditAmount = (Number(productionCosts.value) - Number(balance)).toFixed(2);
         if (Number(minBusinessCreditAmount) < 0) {
             minBusinessCreditAmount = '0'
@@ -197,7 +198,7 @@
 
         var productPower = "${game.productPower}".replace(/\s/g, '').replace(/,/, '.');
         var baseAdvertisementPrice = "${game.baseAdvertisementPrice}".replace(/\s/g, '').replace(/,/, '.');
-        var productionCreation = (Number(productPower) * Number(productionCapacityPerDay.value) / M).toFixed(2);
+        var productionCreation = (Number(productPower) * Number(productionCapacityPerDay) / M).toFixed(2);
         var advertisement = (Number(baseAdvertisementPrice) * Number(advertisingIntensityIndex.value) * Number(advertisingDays.value)).toFixed(2);
         advertisingCost.value = advertisement
         var initialProduction = (Number(productCount.value) * Number(costPrice.value)).toFixed(2)

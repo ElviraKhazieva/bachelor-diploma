@@ -179,8 +179,8 @@
                         </table>
                     </div>
                     <#if game.status != 'FINISHED'>
-                        <h4 id="timeToMarketEndDay">Последний день выпуска продукции текущего производственного
-                            цикла: -</h4>
+                        <h4 id="timeToMarketEndDay">Последний день выпуска текущей партии продукции: -</h4>
+                    <#--                        Последний день выпуска продукции текущего производственного цикла-->
                     </#if>
                 </div>
                 <#if game.status != 'FINISHED'>
@@ -217,26 +217,39 @@
         <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
             <div class="container d-flex justify-content-center">
                 <div class="row">
-                    <#assign competitorsLen = competitors?size>
-                    <#if (competitorsLen > 0)>
-                        <#list competitors as competitor>
-                            <div style="margin-top: 15px">
-                                <h3>${competitor.fullName}</h3>
-                                <h4>Цена товара: ${competitor.price}</h4>
-                                <h4>Ассортимент: ${competitor.assortment}</h4>
-                                <h4>Индекс интенсивности рекламы: ${competitor.advertisingIntensityIndex}</h4>
-                                <canvas id="chartt${competitor.id}" width="800" height="450"></canvas>
-                            </div>
-                        </#list>
-                    <#--                    <#assign competitorsLen = competitors?size>-->
-                    <#--                    <#if (competitorsLen > 0)>-->
-                        <div class="col-12 mt-3">
-                            <button class="btn btn-primary" onclick="updateCharts()">Обновить графики</button>
-                        </div>
-                    <#else>
-                        <h4>Как только конкуренты введут параметры производства, вы сможете их увидеть здесь!</h4>
-                    </#if>
+                    <div id="competitorsContainer">
+                    </div>
+                    <!-- Здесь будут появляться блоки конкурентов -->
+
+                    <div class="col-12 mt-3">
+                        <button id="updateCompetitorsButton" onclick="updateCompetitorsData()" class="btn btn-primary">
+                            Обновить
+                        </button>
+                    </div>
                 </div>
+
+                <#--                <div class="row">-->
+                <#--                    <#assign competitorsLen = competitors?size>-->
+                <#--                    <#if (competitorsLen > 0)>-->
+                <#--                        <#list competitorsList as competitor>-->
+                <#--                            <div style="margin-top: 15px">-->
+                <#--                                <h3>${competitor.fullName}</h3>-->
+                <#--                                <h4>Цена товара: ${competitor.price}</h4>-->
+                <#--                                <h4>Ассортимент: ${competitor.assortment}</h4>-->
+                <#--                                <h4>Индекс интенсивности рекламы: ${competitor.advertisingIntensityIndex}</h4>-->
+                <#--                                <canvas id="chartt${competitor.id}" width="800" height="450"></canvas>-->
+                <#--                            </div>-->
+                <#--                        </#list>-->
+                <#--                        <div class="col-12 mt-3">-->
+                <#--                            <button id="updateCompetitorsButton" class="btn btn-primary" onclick="updateCompetitorsData()">Обновить</button>-->
+                <#--                        </div>-->
+                <#--                    <#else>-->
+                <#--                        <h4>Как только конкуренты введут параметры производства, вы сможете их увидеть здесь!</h4>-->
+                <#--                        <div class="col-12 mt-3">-->
+                <#--                            <button id="updateCompetitorsButton" class="btn btn-primary" onclick="updateCompetitorsData()">Обновить</button>-->
+                <#--                        </div>-->
+                <#--                    </#if>-->
+                <#--                </div>-->
             </div>
         </div>
     </div>
@@ -254,6 +267,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    let charts = {};
     const tabContent = document.getElementById('tab-content');
     const tabLinks = document.querySelectorAll('.nav-link');
 
@@ -271,7 +285,108 @@
             }
         });
     });
-    let chartInstance;
+
+    function updateCompetitorsData() {
+        fetch('http://localhost:80/manufacturer/' + ${manufacturer.id} + '/competitors-data')
+            .then(response => response.json())
+            .then(competitors => {
+                const competitorsContainer = document.getElementById("competitorsContainer");
+                // Очистим контейнер
+                competitorsContainer.innerHTML = '';
+                // Чистим объект графиков
+                charts = {};
+                if (competitors.length > 0) {
+                    let competitorNumber = 1;
+
+                    // Строим графики для каждого конкурента
+                    for (let competitor of competitors) {
+                        // Создаем элементы для информации о конкуренте
+                        const competitorDiv = document.createElement('div');
+                        competitorDiv.style.marginTop = "15px";
+                        const h3 = document.createElement('h3');
+                        h3.textContent = competitorNumber + ". " + competitor.fullName;
+                        const h4Price = document.createElement('h4');
+                        h4Price.textContent = 'Цена товара: ' + competitor.price;
+                        const h4Assortment = document.createElement('h4');
+                        h4Assortment.textContent = 'Ассортимент: ' + competitor.assortment;
+                        const h4Intensity = document.createElement('h4');
+                        h4Intensity.textContent = 'Индекс интенсивности рекламы: ' + competitor.advertisingIntensityIndex;
+                        const h4Quality = document.createElement('h4');
+                        h4Quality.textContent = 'Индекс качества: ' + competitor.qualityIndex;
+                        const canvas = document.createElement('canvas');
+                        canvas.id = 'chartt' + competitor.id;
+                        canvas.width = 800;
+                        canvas.height = 450;
+                        // Добавляем элементы в div
+                        competitorDiv.appendChild(h3);
+                        competitorDiv.appendChild(h4Price);
+                        competitorDiv.appendChild(h4Assortment);
+                        competitorDiv.appendChild(h4Intensity);
+                        competitorDiv.appendChild(h4Quality);
+                        competitorDiv.appendChild(canvas);
+                        // Добавляем div в контейнер
+                        competitorsContainer.appendChild(competitorDiv);
+                        // Создаем график
+                        const chart = createChart(competitor.id);
+                        charts[competitor.id] = chart;
+                        getChartDataFromItem(competitor.id, chart);
+                        competitorNumber++;
+
+                    }
+                } else {
+                    // Если нет данных о конкурентах, отобразим сообщение
+                    const messageContainer = document.createElement('div');
+                    messageContainer.style.marginTop = "15px";
+                    messageContainer.innerHTML =
+                        '<h4>Как только конкуренты введут параметры производства, вы сможете их увидеть здесь!</h4>';
+                    competitorsContainer.appendChild(messageContainer);
+
+                    // competitorsContainer.innerHTML = '<h4>Как только конкуренты введут параметры производства, вы сможете их увидеть здесь!</h4>';
+                }
+            });
+    }
+
+    <#--document.getElementById("updateCompetitorsButton").addEventListener("click", function () {-->
+    <#--    fetch('http://localhost:80/manufacturer/' + ${game.id} + '/competitors-data')-->
+    <#--        .then(response => response.json())-->
+    <#--        .then(competitors => {-->
+    <#--            const competitorsContainer = document.getElementById("competitorsContainer");-->
+    <#--            // Очистим контейнер-->
+    <#--            competitorsContainer.innerHTML = '';-->
+    <#--            // Чистим объект графиков-->
+    <#--            charts = {};-->
+    <#--            // Строим графики для каждого конкурента-->
+    <#--            for (let competitor of competitors) {-->
+    <#--                // Создаем элементы для информации о конкуренте-->
+    <#--                const competitorDiv = document.createElement('div');-->
+    <#--                competitorDiv.style.marginTop = "15px";-->
+    <#--                const h3 = document.createElement('h3');-->
+    <#--                h3.textContent = competitor.fullName;-->
+    <#--                const h4Price = document.createElement('h4');-->
+    <#--                h4Price.textContent = 'Цена товара: ' + competitor.price;-->
+    <#--                const h4Assortment = document.createElement('h4');-->
+    <#--                h4Assortment.textContent = 'Ассортимент: ' + competitor.assortment;-->
+    <#--                const h4Intensity = document.createElement('h4');-->
+    <#--                h4Intensity.textContent = 'Индекс интенсивности рекламы: ' + competitor.advertisingIntensityIndex;-->
+    <#--                const canvas = document.createElement('canvas');-->
+    <#--                canvas.id = 'chartt' + competitor.id;-->
+    <#--                canvas.width = 800;-->
+    <#--                canvas.height = 450;-->
+    <#--                // Добавляем элементы в div-->
+    <#--                competitorDiv.appendChild(h3);-->
+    <#--                competitorDiv.appendChild(h4Price);-->
+    <#--                competitorDiv.appendChild(h4Assortment);-->
+    <#--                competitorDiv.appendChild(h4Intensity);-->
+    <#--                competitorDiv.appendChild(canvas);-->
+    <#--                // Добавляем div в контейнер-->
+    <#--                competitorsContainer.appendChild(competitorDiv);-->
+    <#--                // Создаем график-->
+    <#--                const chart = createChart(competitor.id);-->
+    <#--                charts[competitor.id] = chart;-->
+    <#--                getChartDataFromItem(competitor.id, chart);-->
+    <#--            }-->
+    <#--        });-->
+    <#--});-->
 
     function fetchBalanceAndDebt() {
         $.ajax({
@@ -329,10 +444,10 @@
                 // Находим максимальный номер дня в списке объектов
                 const maxDay = Math.max(...data.map(item => item.endDate));
 
-// Создаем массив с метками по оси x от 1 до максимального номера дня
+                // Создаем массив с метками по оси x от 1 до максимального номера дня
                 const labels = Array.from({length: maxDay}, (_, i) => i + 1);
 
-// Создаем массив данных для графика
+                // Создаем массив данных для графика
                 const chartData = labels.map(day => {
                     // Находим объект в списке, для которого дни включают текущий день
                     const obj = data.find(item => day >= item.startDate && day <= item.endDate);
@@ -340,7 +455,7 @@
                     return obj ? obj.intensityIndex : 0;
                 });
 
-// Обновляем данные графика
+                // Обновляем данные графика
                 chart2.data.labels = labels;
                 chart2.data.datasets[0].data = chartData;
                 chart2.update();
@@ -381,12 +496,6 @@
                     beginAtZero: true
                 }
             },
-            // plugins: {
-            //     title: {
-            //         display: true,
-            //         text: 'Выручка по дням'
-            //     }
-            // }
         }
     });
     // Отрисовываем график на странице с помощью Chart.js
@@ -427,99 +536,6 @@
 
         }
     });
-    // plugins: {
-    //     title: {
-    //         display: true,
-    //         text: 'Выручка по дням'
-    //     }
-    // }
-
-    <#--function showTab3Charts() {-->
-    <#--    const charts = {};-->
-    <#--    <#list competitors as competitor>-->
-    <#--    const chartt${competitor.id} = new Chart('chartt${competitor.id}', {-->
-    <#--        type: 'line',-->
-    <#--        data: {-->
-    <#--            labels: [],-->
-    <#--            datasets: [{-->
-    <#--                label: 'Выручка по дням',-->
-    <#--                data: [],-->
-    <#--                borderColor: 'rgb(255, 99, 132)',-->
-    <#--                borderWidth: 1-->
-    <#--            }]-->
-    <#--        },-->
-    <#--        options: {-->
-    <#--            legend: {-->
-    <#--                display: false-->
-    <#--            },-->
-    <#--            responsive: false,-->
-    <#--            scales: {-->
-    <#--                x: {-->
-    <#--                    title: {-->
-    <#--                        display: true,-->
-    <#--                        text: 'День'-->
-    <#--                    }-->
-    <#--                },-->
-    <#--                y: {-->
-    <#--                    title: {-->
-    <#--                        display: true,-->
-    <#--                        text: 'Сумма'-->
-    <#--                    },-->
-    <#--                    beginAtZero: true-->
-    <#--                }-->
-    <#--            }-->
-    <#--        }-->
-    <#--    });-->
-    <#--    charts['${competitor.id}'] = chartt${competitor.id};-->
-    <#--    getChartDataFromItem(${competitor.id}, chartt${competitor.id});-->
-    <#--    </#list>-->
-
-    <#--    function updateCharts() {-->
-    <#--        <#list competitors as competitor>-->
-    <#--        getChartDataFromItem(${competitor.id}, charts['${competitor.id}']);-->
-    <#--        </#list>-->
-    <#--    }-->
-    <#--}-->
-
-
-    let charts = {};
-    <#list competitors as competitor>
-    const chartt${competitor.id} = new Chart('chartt${competitor.id}', {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Выручка по дням',
-                data: [],
-                borderColor: 'rgb(255, 99, 132)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            legend: {
-                display: false
-            },
-            responsive: false,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'День'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Сумма'
-                    },
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-    charts['${competitor.id}'] = chartt${competitor.id};
-    getChartDataFromItem(${competitor.id}, chartt${competitor.id});
-    </#list>
 
     function getChartDataFromItem(competitorId, chart) {
         fetch('http://localhost:80/game/revenue-data/' + competitorId)
@@ -547,12 +563,41 @@
             });
     }
 
-    function updateCharts() {
-        <#list competitors as competitor>
-        getChartDataFromItem(${competitor.id}, charts['${competitor.id}']);
-        </#list>
+    function createChart(competitorId) {
+        return new Chart('chartt' + competitorId, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Выручка по дням',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                legend: {
+                    display: false
+                },
+                responsive: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'День'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Сумма'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
-
 
     <#if game.status != 'FINISHED'>
     document.getElementById('refreshTab1').addEventListener('click', fetchBalanceAndDebt);
@@ -574,12 +619,7 @@
                 }
                 break;
             case 'tab3':
-            <#assign competitorsLen = competitors?size>
-            <#if (competitorsLen > 0)>
-            <#list competitors as competitor>
-                getChartDataFromItem(${competitor.id}, charts['${competitor.id}']);
-            </#list>
-            </#if>
+                updateCompetitorsData()
                 break;
             default:
                 break;

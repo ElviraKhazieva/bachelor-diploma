@@ -8,6 +8,7 @@ import ru.itis.diploma.model.InvestmentCreditPayment;
 import ru.itis.diploma.model.Manufacturer;
 import ru.itis.diploma.model.ProductionParameters;
 import ru.itis.diploma.model.SalesTaxPayment;
+import ru.itis.diploma.model.StatisticsInfo;
 import ru.itis.diploma.repository.BusinessCreditPaymentRepository;
 import ru.itis.diploma.repository.InvestmentCreditPaymentRepository;
 import ru.itis.diploma.repository.ManufacturerRepository;
@@ -20,6 +21,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static ru.itis.diploma.service.CronService.MANUFACTURER_STATISTICS_INFO;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +55,7 @@ public class PaymentService {
                 int lastPaymentDate = lastPayment.isPresent() ? lastPayment.get().getDate() : 1;
 
                 BigDecimal purchasesTotal = tradingSessionResultsRepository.getPurchasesTotal(manufacturer.getId(), lastPaymentDate, Game.currentDay);
+                StatisticsInfo statisticsInfo = MANUFACTURER_STATISTICS_INFO.get(manufacturer.getId());
                 if (purchasesTotal != null) {
                     var taxAmount = purchasesTotal.multiply(salesTax).divide(BigDecimal.valueOf(100), 2, RoundingMode.UP);
                     var payment = SalesTaxPayment.builder()
@@ -60,9 +64,12 @@ public class PaymentService {
                         .manufacturer(manufacturer)
                         .build();
                     salesTaxPayments.add(payment);
+                    statisticsInfo.setPaidTaxesAmount(taxAmount);
                     //допускаем отрицательный баланс, условно списываем деньги по поступлению средств
                     manufacturer.setBalance(manufacturer.getBalance().subtract(taxAmount));
                     manufacturerRepository.save(manufacturer);
+                } else {
+                    statisticsInfo.setPaidTaxesAmount(BigDecimal.ZERO);
                 }
             }
             salesTaxPaymentRepository.saveAll(salesTaxPayments);
@@ -102,6 +109,8 @@ public class PaymentService {
                 }
                 businessCreditPaymentRepository.save(newPayment);
                 manufacturerRepository.save(manufacturer);
+                StatisticsInfo statisticsInfo = MANUFACTURER_STATISTICS_INFO.get(manufacturer.getId());
+                statisticsInfo.setRepaidBusinessCreditAmount(statisticsInfo.getRepaidBusinessCreditAmount().add(newPayment.getAmount()));
             }
         }
     }
@@ -226,6 +235,8 @@ public class PaymentService {
                 }
                 manufacturerRepository.save(manufacturer);
                 investmentCreditPaymentRepository.save(newPayment);
+                StatisticsInfo statisticsInfo = MANUFACTURER_STATISTICS_INFO.get(manufacturer.getId());
+                statisticsInfo.setRepaidInvestmentCreditAmount(newPayment.getPrincipalPayment().add(newPayment.getInterestAmount()));
             }
         }
     }

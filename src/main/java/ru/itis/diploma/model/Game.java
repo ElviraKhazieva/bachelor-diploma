@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Entity
 public class Game {
 
-    public static int currentDay; //todo: вернуть на 0
+    public static int currentDay = 59; //todo: вернуть на 0
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

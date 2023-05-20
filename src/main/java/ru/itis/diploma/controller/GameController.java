@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import ru.itis.diploma.dto.AccountDto;
 import ru.itis.diploma.dto.CreateGameDto;
 import ru.itis.diploma.dto.GameDto;
-import ru.itis.diploma.dto.ManufacturerParameters;
 import ru.itis.diploma.model.Account;
-import ru.itis.diploma.model.Advertisement;
 import ru.itis.diploma.security.details.AccountUserDetails;
 import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.GameService;
@@ -22,8 +20,6 @@ import ru.itis.diploma.service.ManufacturerService;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 import static ru.itis.diploma.model.enums.GameStatus.FINISHED;
 import static ru.itis.diploma.model.enums.GameStatus.STARTED;
@@ -78,25 +74,6 @@ public class GameController {
 
         var manufacturer = manufacturerService.getManufacturerByAccountIdAndGameId(userDetails.getAccount().getId(), id);
         if (manufacturer.isEnteredInitialProductionParameters()) {
-            model.addAttribute("competitors",
-                manufacturerService.getGameManufacturers(game.getId()).stream()
-                    .filter(m -> !Objects.equals(m.getId(), manufacturer.getId()))
-                    .map(m -> manufacturerService.getLastProductionParameters(m.getId()))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(p -> {
-                        Optional<Advertisement> lastAdvertisement = manufacturerService.getLastAdvertisement(manufacturer.getId());
-                        var advertisingIntensityIndex = lastAdvertisement.isPresent() ? lastAdvertisement.get().getIntensityIndex() : 0;
-                        return ManufacturerParameters.builder()
-                            .id(p.getManufacturer().getId())
-                            .fullName(p.getManufacturer().getAccount().getFullName())
-                            .assortment(p.getAssortment())
-                            .price(p.getPrice())
-                            .qualityIndex(p.getQualityIndex())
-                            .advertisingIntensityIndex(advertisingIntensityIndex)
-                            .build();
-                    })
-                    .toList());
             model.addAttribute("manufacturer", manufacturer);
             model.addAttribute("productionParameters", manufacturerService.getAllProductionParameters(manufacturer));
             return "game";

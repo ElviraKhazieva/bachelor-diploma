@@ -18,7 +18,12 @@ import ru.itis.diploma.service.ManufacturerService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+
+import static ru.itis.diploma.service.CronService.MANUFACTURER_STATISTICS_INFO;
+import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_CURRENT_PRODUCT_COUNT;
+import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_REVENUE;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +64,10 @@ public class GameServiceImpl implements GameService {
             .habitTrackingDays(gameDto.getHabitTrackingDays())
             .build();
         gameRepository.save(newGame);
+        Game.currentDay = 0;
+        MANUFACTURER_CURRENT_PRODUCT_COUNT = new HashMap<>();
+        MANUFACTURER_REVENUE = new HashMap<>();
+        MANUFACTURER_STATISTICS_INFO = new HashMap<>();
         createManufacturers(newGame, gameDto.getAccountIds());
     }
 

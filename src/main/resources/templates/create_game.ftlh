@@ -48,7 +48,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid h-custom" style="margin-top: 30px; margin-bottom:750px">
+    <div class="container-fluid h-custom" style="margin-top: 30px; margin-bottom:650px">
         <div class="row d-flex justify-content-center align-items-center h-100">
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
                 <form action="/game" method="post">

@@ -22,12 +22,14 @@ import ru.itis.diploma.service.AccountService;
 import ru.itis.diploma.service.ManufacturerService;
 import ru.itis.diploma.service.PaymentService;
 
+import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -41,8 +43,8 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     private final BusinessCreditPaymentRepository businessCreditPaymentRepository;
     private final InvestmentCreditPaymentRepository investmentCreditPaymentRepository;
     private static final int MONTH = 30;
-    public static final Map<Long, Integer> MANUFACTURER_CURRENT_PRODUCT_COUNT = new HashMap<>(); // тек кол-во товаров у каждого производителя(условно кэш в мапе Map<Id производителя, Тек кол-во товаров производителя на рыке>)
-    public static final Map<Long, BigDecimal> MANUFACTURER_REVENUE = new HashMap<>(); // тек выручка привязана ко дню после каждой торговой сессии перезаписываем
+    public static Map<Long, Integer> MANUFACTURER_CURRENT_PRODUCT_COUNT = new HashMap<>(); // тек кол-во товаров у каждого производителя(условно кэш в мапе Map<Id производителя, Тек кол-во товаров производителя на рыке>)
+    public static Map<Long, BigDecimal> MANUFACTURER_REVENUE = new HashMap<>(); // тек выручка привязана ко дню после каждой торговой сессии перезаписываем
 
     @Override
     public Optional<ProductionParameters> getLastProductionParameters(Long manufacturerId) {
@@ -88,7 +90,7 @@ public class ManufacturerServiceImpl implements ManufacturerService {
 
     @Override
     public List<Manufacturer> getGameManufacturers(Long gameId) {
-        return manufacturerRepository.findByGame_Id(gameId);
+        return manufacturerRepository.findByGame_IdAndEnteredInitialProductionParametersIsTrue(gameId);
     }
 
     @Override
@@ -142,6 +144,7 @@ public class ManufacturerServiceImpl implements ManufacturerService {
         manufacturer.setBalance(BigDecimal.ZERO);
         manufacturer.setInvestmentCreditTermMonths(game.getInvestmentCreditTermMonths());
         manufacturer.setInvestmentCreditDebt(initialProductionParameters.getInvestmentCreditAmount());
+        manufacturer.setProductionCapacityPerDay(initialProductionParameters.getProductionCapacityPerDay());
         manufacturerRepository.save(manufacturer);
 
         saveAdvertisement(manufacturer, initialProductionParameters);
@@ -279,6 +282,31 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     }
 
     @Override
+    public List<ManufacturerParameters> getCompetitorsData(Long id) {
+        var manufacturer = manufacturerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        var gameId = manufacturer.getGame().getId();
+        return getGameManufacturers(gameId).stream()
+            .filter(m -> !Objects.equals(m.getId(), manufacturer.getId()))
+            .map(m -> getLastProductionParameters(m.getId()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(p -> {
+                Optional<Advertisement> lastAdvertisement = advertisementRepository.findByManufacturerIdAndStartDate(
+                    p.getManufacturer().getId(), p.getStartDate() + 1);
+                var advertisingIntensityIndex = lastAdvertisement.isPresent() ? lastAdvertisement.get().getIntensityIndex() : 0;
+                return ManufacturerParameters.builder()
+                    .id(p.getManufacturer().getId())
+                    .fullName(p.getManufacturer().getAccount().getFullName())
+                    .assortment(p.getAssortment())
+                    .price(p.getPrice())
+                    .qualityIndex(p.getQualityIndex())
+                    .advertisingIntensityIndex(advertisingIntensityIndex)
+                    .build();
+            })
+            .toList();
+    }
+
+    @Override
     public Manufacturer getManufacturerByAccountIdAndGameId(Long accountId, Long gameId) {
         return manufacturerRepository.findByAccount_IdAndGame_Id(accountId, gameId);
     }
@@ -308,7 +336,7 @@ public class ManufacturerServiceImpl implements ManufacturerService {
             .costPrice(productionParameters.getCostPrice())
             .assortment(productionParameters.getAssortment())
             .qualityIndex(productionParameters.getQualityIndex())
-            .productionCapacityPerDay(productionParameters.getProductionCapacityPerDay())
+            .productionCapacityPerDay(manufacturer.getProductionCapacityPerDay())
 //            .businessCreditDebt(BigDecimal.ZERO)
             .startDate(Game.currentDay)
             .timeToMarket(productionParameters.getTimeToMarket())

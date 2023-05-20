@@ -23,8 +23,6 @@ public class CommonProductionParameters {
 
     private BigDecimal qualityIndex; //покупатель
 
-    private Integer productionCapacityPerDay;
-
     private Integer advertisingDays;
 
     /**

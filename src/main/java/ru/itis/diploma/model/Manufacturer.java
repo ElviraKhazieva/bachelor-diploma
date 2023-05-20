@@ -33,6 +33,8 @@ public class Manufacturer {
 
     private BigDecimal balance;
 
+    private Integer productionCapacityPerDay;
+
     private BigDecimal investmentCreditAmount; //величина инвестиционного кредита(стартоый капитал)
 
     private BigDecimal investmentCreditDebt;
