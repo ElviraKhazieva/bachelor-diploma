@@ -43,7 +43,7 @@
 <div class="container" style="margin: 100px auto auto;">
     <form class="row g-3 color-rect-border" method="post" action="/game/${game.id}/production-parameters">
         <h1 style="text-align: center">Определите новые параметры производства</h1>
-        <h4 style="margin-top: 25px">Ваш баланс: ${manufacturer.balance}</h4>
+        <h4 style="margin-top: 25px">Ваш баланс: ${manufacturer.balance} руб.</h4>
         <h4 style="margin-top: 10px">Ваша мощность производства: ${manufacturer.productionCapacityPerDay} ед/сутки</h4>
         <div class="row g-3">
             <h4 style="margin-top: 10px">Параметры производимой продукции:</h4>
