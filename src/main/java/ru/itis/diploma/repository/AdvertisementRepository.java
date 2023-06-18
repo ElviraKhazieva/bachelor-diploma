@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AdvertisementRepository extends JpaRepository<Advertisement, Long> {
+
     List<Advertisement> findByManufacturerId(Long manufacturerId);
 
     Optional<Advertisement> findByManufacturerIdAndStartDate(Long manufacturerId, Integer startDate);
+
 }

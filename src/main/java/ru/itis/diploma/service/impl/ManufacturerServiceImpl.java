@@ -43,8 +43,8 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     private final BusinessCreditPaymentRepository businessCreditPaymentRepository;
     private final InvestmentCreditPaymentRepository investmentCreditPaymentRepository;
     private static final int MONTH = 30;
-    public static Map<Long, Integer> MANUFACTURER_CURRENT_PRODUCT_COUNT = new HashMap<>(); // тек кол-во товаров у каждого производителя(условно кэш в мапе Map<Id производителя, Тек кол-во товаров производителя на рыке>)
-    public static Map<Long, BigDecimal> MANUFACTURER_REVENUE = new HashMap<>(); // тек выручка привязана ко дню после каждой торговой сессии перезаписываем
+    public static Map<Long, Integer> MANUFACTURER_CURRENT_PRODUCT_COUNT = new HashMap<>();
+    public static Map<Long, BigDecimal> MANUFACTURER_REVENUE = new HashMap<>();
 
     @Override
     public Optional<ProductionParameters> getLastProductionParameters(Long manufacturerId) {
@@ -94,8 +94,13 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     }
 
     @Override
+    public List<Manufacturer> getCreateGameManufacturers(Long gameId) {
+        return manufacturerRepository.findByGame_Id(gameId);
+    }
+
+    @Override
     public List<ManufacturerParameters> getManufacturersActualProductionParameters(Long gameId) {
-        return getGameManufacturers(gameId).stream()
+        return getCreateGameManufacturers(gameId).stream()
             .map(manufacturer -> {
                 var account = accountService.getById(manufacturer.getAccount().getId());
                 var productionParameters = getLastProductionParameters(manufacturer.getId());
@@ -128,14 +133,6 @@ public class ManufacturerServiceImpl implements ManufacturerService {
             }).toList();
     }
 
-    /**
-     * Сумма инвестиционного редита вычисляется на фронте по формуле:
-     * Сумма инвестиционного кредита = Создание производства + Реклама(EconomicIndicatorsCalculator) + начальное пр-во
-     * Затраты на создание пр-ва = базовая стоимость единицы мощности (productPower из параметров админа) * кол-во продукции(productionCapacityPerDay) / M
-     * Затраты на начальное производство продукции = Количество продукции(product count) * Себестоимость(посчитана на фронте))
-     * <p>
-     * Баланс = 0, тк потратили весь инвестиционный кредит
-     */
     @Override
     public void defineInitialProductionParameters(InitialProductionParameters initialProductionParameters, Long accountId, Game game) {
         var manufacturer = getManufacturerByAccountIdAndGameId(accountId, game.getId());
@@ -164,8 +161,8 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     @Override
     public void defineNewProductionParameters(NewProductionParameters newProductionParameters, Long accountId, Game game) {
         var manufacturer = getManufacturerByAccountIdAndGameId(accountId, game.getId());
-        // разница между суммой бизнес кредита и затратами на производство(нужны только для помощи с определением суммы бизнес-кредита?)
-        manufacturer.setBalance(manufacturer.getBalance().add(newProductionParameters.getBusinessCreditAmount().subtract(newProductionParameters.getProductionCosts())));
+        manufacturer.setBalance(manufacturer.getBalance()
+            .add(newProductionParameters.getBusinessCreditAmount().subtract(newProductionParameters.getProductionCosts())));
         manufacturerRepository.save(manufacturer);
         saveAdvertisement(manufacturer, newProductionParameters);
         var productionParameters = saveProductParameters(manufacturer, newProductionParameters);
@@ -180,8 +177,6 @@ public class ManufacturerServiceImpl implements ManufacturerService {
                         productionParameters.getBusinessCreditAmount(),
                         game.getInterestRateBusinessCredit(),
                         productionParameters.getTimeToMarket())))
-//                .principalPayment(BigDecimal.ZERO)
-//                .interestAmount(BigDecimal.ZERO)
                 .nextDate(Game.currentDay + productionParameters.getTimeToMarket() * 2)
                 .build();
             businessCreditPaymentRepository.save(payment);
@@ -194,7 +189,8 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     public ManufacturerFinancialStatus getManufacturerFinancialStatus(Game game, Long accountId) {
         var manufacturer = getManufacturerByAccountIdAndGameId(accountId, game.getId());
         var actualProductionParameters = getLastProductionParameters(manufacturer.getId()).get();
-        var activeManufacturingCycle = Game.currentDay <= (actualProductionParameters.getStartDate() + actualProductionParameters.getTimeToMarket());
+        var activeManufacturingCycle = Game.currentDay <= (actualProductionParameters.getStartDate() +
+            actualProductionParameters.getTimeToMarket());
 
         return ManufacturerFinancialStatus.builder()
             .day(Game.currentDay)
@@ -209,7 +205,8 @@ public class ManufacturerServiceImpl implements ManufacturerService {
 
     @Override
     public BigDecimal calculateManufacturerInvestmentCreditDebt(Manufacturer manufacturer, Game game) {
-        var lastPayment = investmentCreditPaymentRepository.findAllByManufacturerId(manufacturer.getId()).stream()
+        var lastPayment = investmentCreditPaymentRepository.findAllByManufacturerId(
+                manufacturer.getId()).stream()
             .max(Comparator.comparingInt(InvestmentCreditPayment::getDate)).get();
         return manufacturer.getInvestmentCreditDebt()
             .add(calculateInvestmentCreditInterestAmountOnCurrentDay(
@@ -226,18 +223,6 @@ public class ManufacturerServiceImpl implements ManufacturerService {
             .multiply(BigDecimal.valueOf(daysAfterLastPayment))
             .divide(BigDecimal.valueOf(365), 2, RoundingMode.UP);
     }
-
-//    @Override
-//    public BigDecimal calculateManufacturerInvestmentCreditDebt(Manufacturer manufacturer) {
-//        BigDecimal debt = manufacturer.getInvestmentCreditAmount().subtract(
-//            investmentCreditPaymentRepository.findAllByManufacturerId(manufacturer.getId()).stream()
-//                .map(InvestmentCreditPayment::getPrincipalPayment)
-//                .filter(Objects::nonNull)
-//                .reduce(BigDecimal.ZERO, BigDecimal::add));
-//
-//        return manufacturer.getInvestmentCreditDebt() != null ? debt.add(manufacturer.getInvestmentCreditDebt()) : debt;
-//
-//    }
 
     @Override
     public BigDecimal calculateManufacturerBusinessCreditDebt(Manufacturer manufacturer) {
@@ -324,10 +309,6 @@ public class ManufacturerServiceImpl implements ManufacturerService {
         }
     }
 
-    /**
-     * productionCapacityPerDay - любое, вводится производителем
-     * По этому параметру высчитывается количество дней, необходимых для производства(timeToMarket)
-     */
     private ProductionParameters saveProductParameters(Manufacturer manufacturer, CommonProductionParameters productionParameters) {
         var resultProductionParameters = ProductionParameters.builder()
             .manufacturer(manufacturer)
@@ -337,12 +318,10 @@ public class ManufacturerServiceImpl implements ManufacturerService {
             .assortment(productionParameters.getAssortment())
             .qualityIndex(productionParameters.getQualityIndex())
             .productionCapacityPerDay(manufacturer.getProductionCapacityPerDay())
-//            .businessCreditDebt(BigDecimal.ZERO)
             .startDate(Game.currentDay)
             .timeToMarket(productionParameters.getTimeToMarket())
             .build();
         productionParametersRepository.save(resultProductionParameters);
-
 
         return resultProductionParameters;
     }

@@ -25,6 +25,8 @@ public interface ManufacturerService {
 
     List<Manufacturer> getGameManufacturers(Long gameId);
 
+    List<Manufacturer> getCreateGameManufacturers(Long gameId);
+
     List<ManufacturerParameters> getManufacturersActualProductionParameters(Long gameId);
 
     Manufacturer getManufacturerByAccountIdAndGameId(Long accountId, Long gameId);

@@ -6,6 +6,7 @@ import ru.itis.diploma.model.InvestmentCreditPayment;
 import java.util.List;
 
 public interface InvestmentCreditPaymentRepository extends JpaRepository<InvestmentCreditPayment, Long> {
+
     List<InvestmentCreditPayment> findAllByManufacturerId(Long manufacturerId);
 
     List<InvestmentCreditPayment> findAllByManufacturerIdInAndNextDate(List<Long> manufacturerIds, Integer date);

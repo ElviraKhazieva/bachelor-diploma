@@ -7,10 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import ru.itis.diploma.model.enums.GameStatus;
-import ru.itis.diploma.service.BuyerService;
-import ru.itis.diploma.service.CronService;
 import ru.itis.diploma.service.GameService;
-import ru.itis.diploma.service.ManufacturerService;
+import ru.itis.diploma.service.TradingSessionService;
 
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -20,13 +18,10 @@ import java.util.concurrent.TimeUnit;
 public class TradingSessionController {
 
     private final GameService gameService;
-    private final ManufacturerService manufacturerService;
-    private final CronService cronService;
-    private final BuyerService buyerService;
+    private final TradingSessionService tradingSessionService;
     private final TaskScheduler taskScheduler;
 
     private ScheduledFuture<?> scheduledTask;
-
 
     @GetMapping("game/{id}/trading-sessions/start/{timeUnit}")
     public String startTradingSessions(@PathVariable("id") Long gameId, @PathVariable long timeUnit) {
@@ -36,7 +31,7 @@ public class TradingSessionController {
             gameService.save(game);
 
             PeriodicTrigger trigger = new PeriodicTrigger(timeUnit, TimeUnit.MINUTES);
-            scheduledTask = taskScheduler.schedule(() -> cronService.doDaysActivities(game), trigger);
+            scheduledTask = taskScheduler.schedule(() -> tradingSessionService.doDaysActivities(game), trigger);
         }
         return "redirect:/game/" + gameId;
     }

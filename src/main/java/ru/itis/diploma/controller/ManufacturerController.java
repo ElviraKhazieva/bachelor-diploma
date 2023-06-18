@@ -85,8 +85,8 @@ public class ManufacturerController {
     @ResponseBody
     @GetMapping("/game/{id}/financial-status/{accountId}")
     @PreAuthorize("isAuthenticated()")
-    public ManufacturerFinancialStatus getAccountGames(@PathVariable("id") Long gameId,
-                                                       @PathVariable Long accountId) {
+    public ManufacturerFinancialStatus getFinancialStatus(@PathVariable("id") Long gameId,
+                                                          @PathVariable Long accountId) {
         var game = gameService.getGameById(gameId);
         return manufacturerService.getManufacturerFinancialStatus(game, accountId);
     }

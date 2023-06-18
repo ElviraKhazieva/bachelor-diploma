@@ -202,7 +202,7 @@
         var advertisement = (Number(baseAdvertisementPrice) * Number(advertisingIntensityIndex.value) * Number(advertisingDays.value)).toFixed(2);
         advertisingCost.value = advertisement
         var initialProduction = (Number(productCount.value) * Number(costPrice.value)).toFixed(2)
-        productionCosts.value = (Number(productionCreation) + Number(advertisement) + Number(initialProduction)).toFixed(2);
+        productionCosts.value = (Number(advertisement) + Number(initialProduction)).toFixed(2);
         calculateBusinessCreditAmount()
     }
 

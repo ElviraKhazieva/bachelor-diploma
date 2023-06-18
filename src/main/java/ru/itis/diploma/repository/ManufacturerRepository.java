@@ -10,4 +10,6 @@ public interface ManufacturerRepository extends JpaRepository<Manufacturer, Long
     Manufacturer findByAccount_IdAndGame_Id(Long accountId, Long gameId);
 
     List<Manufacturer> findByGame_IdAndEnteredInitialProductionParametersIsTrue(Long gameId);
+
+    List<Manufacturer> findByGame_Id(Long gameId);
 }

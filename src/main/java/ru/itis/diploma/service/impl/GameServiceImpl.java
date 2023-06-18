@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 
-import static ru.itis.diploma.service.CronService.MANUFACTURER_STATISTICS_INFO;
+import static ru.itis.diploma.service.TradingSessionService.MANUFACTURER_STATISTICS_INFO;
 import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_CURRENT_PRODUCT_COUNT;
 import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_REVENUE;
 
@@ -76,8 +76,6 @@ public class GameServiceImpl implements GameService {
             .map(userId -> Manufacturer.builder()
                 .game(newGame)
                 .account(accountService.getById(userId))
-//                .balance(BigDecimal.ZERO)
-//                .investmentCreditAmount(BigDecimal.ZERO)
                 .investmentCreditDebt(BigDecimal.ZERO)
                 .investmentCreditIsRepaid(false)
                 .build())
@@ -124,20 +122,6 @@ public class GameServiceImpl implements GameService {
 
     public List<GameResult> getGameResults(Game game) {
         return gameResultRepository.findByGameId(game.getId());
-//        List<Manufacturer> manufacturers = manufacturerService.getGameManufacturers(game.getId());
-//        return manufacturers.stream()
-//            .collect(Collectors.toMap(
-//                Function.identity(),
-//                manufacturer -> calculateFinishFinancialStatus(manufacturer, game)
-//            ))
-//            .entrySet().stream()
-//            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-//            .collect(Collectors.toMap(
-//                Map.Entry::getKey,
-//                Map.Entry::getValue,
-//                (oldValue, newValue) -> oldValue,
-//                LinkedHashMap::new
-//            ));
     }
 
     @Override

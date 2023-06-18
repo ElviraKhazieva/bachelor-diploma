@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static ru.itis.diploma.service.CronService.MANUFACTURER_STATISTICS_INFO;
+import static ru.itis.diploma.service.TradingSessionService.MANUFACTURER_STATISTICS_INFO;
 import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_CURRENT_PRODUCT_COUNT;
 import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_REVENUE;
 
@@ -33,11 +33,6 @@ public class BuyerService {
 
     private static final Logger logger = LoggerFactory.getLogger(BuyerService.class);
 
-    /*
-        Каждый день генерируется количество товаров, которое купит покупатель, в диапазоне от ( 0 до (сумма всего товаров на рынке у производителей) )
-        Производители отсортированы в порядке, у кого отношение цена/качество лучше
-        Покупатель пытается купить мин(требуемое количество, количество товаров у пр-ля) количество товаров у каждого производителя в отсортированном списке
-     */
     public void makePurchases(Game game, List<ProductionParameters> productionParametersList) {
         updateWornOutFlag(game);
         BigDecimal dailySpendingLimit = game.getDailySpendingLimit();
@@ -82,10 +77,12 @@ public class BuyerService {
         tradingSessionResultsRepository.saveAll(tradingSessionResultsList);
     }
 
-    private int calculatePurchaseQuantity(BigDecimal dailySpendingLimit, BigDecimal productPrice, int requiredQuantity,
+    private int calculatePurchaseQuantity(BigDecimal dailySpendingLimit,
+                                          BigDecimal productPrice,
+                                          int requiredQuantity,
                                           int manufacturerCurrentProductCount) {
-        int maxQuantityBySpendingLimit = dailySpendingLimit.divide(productPrice, RoundingMode.FLOOR).intValue();
         int purchaseQuantity = Math.min(requiredQuantity, manufacturerCurrentProductCount);
+        int maxQuantityBySpendingLimit = dailySpendingLimit.divide(productPrice, RoundingMode.FLOOR).intValue();
         return Math.min(purchaseQuantity, maxQuantityBySpendingLimit);
     }
 
@@ -106,50 +103,6 @@ public class BuyerService {
         Integer unwornProductsCount = tradingSessionResultsRepository.getUnwornProductsCountByGameId(game.getId());
         if (unwornProductsCount == null) return 0;
         return unwornProductsCount;
-//        return tradingSessionResultsRepository.findAll().stream()
-//            .filter(t -> Objects.equals(t.getManufacturer().getGame().getId(), game.getId())
-//                && t.getIsWornOut().equals(Boolean.FALSE))
-//            .map(TradingSessionResults::getProductNumber)
-//            .reduce(0, Integer::sum);
     }
 
-//    public void makePurchases(Game game, List<ProductionParameters> productionParametersList) {
-//        updateWornOutFlag(game);
-//        var dailySpendingLimit = game.getDailySpendingLimit();
-//        var requiredQuantity = game.getPurchaseLimit() - getUnwornProductsCount(game);
-//        List<TradingSessionResults> tradingSessionResultsList = new ArrayList<>();
-//        List<Manufacturer> manufacturers = new ArrayList<>();
-//
-//        logger.info("НАЧИНАЮ СОВЕРШАТЬ ПОКУПКИ...");
-//        for (ProductionParameters productionParameters : productionParametersList) {
-//            var manufacturer = productionParameters.getManufacturer();
-//            var manufacturerCurrentProductCount = MANUFACTURER_CURRENT_PRODUCT_COUNT.get(manufacturer.getId());
-//            int purchaseQuantity = Math.min(requiredQuantity, manufacturerCurrentProductCount);
-//            BigDecimal totalPrice = productionParameters.getPrice().multiply(BigDecimal.valueOf(purchaseQuantity));
-//
-//            if ((purchaseQuantity > 0) && (dailySpendingLimit.subtract(totalPrice).compareTo(BigDecimal.ZERO) >= 0) && (getUnwornProductsCount(game) + purchaseQuantity <= game.getPurchaseLimit())) {
-//                logger.info("ПОКУПАЮ {} ТОВАРОВ", + purchaseQuantity);
-//
-//                TradingSessionResults tradingSessionResults = TradingSessionResults.builder()
-//                    .manufacturer(manufacturer)
-//                    .productNumber(purchaseQuantity)
-//                    .price(productionParameters.getPrice())
-//                    .qualityIndex(productionParameters.getQualityIndex())
-//                    .tradeDate(Game.currentDay)
-//                    .isWornOut(false)
-//                    .build();
-//                tradingSessionResultsList.add(tradingSessionResults);
-//                MANUFACTURER_CURRENT_PRODUCT_COUNT.put(manufacturer.getId(), manufacturerCurrentProductCount - purchaseQuantity);
-//                MANUFACTURER_REVENUE.put(manufacturer.getId(), totalPrice);
-//                manufacturer.setBalance(manufacturer.getBalance().add(totalPrice));
-//                manufacturers.add(manufacturer);
-//                requiredQuantity -= purchaseQuantity;
-//                dailySpendingLimit = dailySpendingLimit.subtract(totalPrice);
-//            }
-//
-//            logger.info("ОСТАЛОСЬ КУПИТЬ - {} ", requiredQuantity);
-//        }
-//        manufacturerRepository.saveAll(manufacturers);
-//        tradingSessionResultsRepository.saveAll(tradingSessionResultsList);
-//    }
 }

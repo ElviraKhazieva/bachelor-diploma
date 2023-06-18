@@ -24,7 +24,7 @@ import static ru.itis.diploma.service.impl.ManufacturerServiceImpl.MANUFACTURER_
 
 @Service
 @RequiredArgsConstructor
-public class CronService {
+public class TradingSessionService {
 
     private final ManufacturerService manufacturerService;
     private final TradingSessionResultsRepository tradingSessionResultsRepository;
@@ -44,7 +44,8 @@ public class CronService {
         var productionParametersList = manufacturers.stream()
             .map(manufacturer -> manufacturerService.getLastProductionParameters(manufacturer.getId()).get())
             .sorted(Comparator.comparingDouble(p -> {
-                Integer manufacturerPurchaseCounts = purchaseCountsByManufacturerId.get(((ProductionParameters) p).getManufacturer().getId());
+                Integer manufacturerPurchaseCounts = purchaseCountsByManufacturerId.get(((ProductionParameters) p)
+                    .getManufacturer().getId());
                 if (manufacturerPurchaseCounts == null) {
                     manufacturerPurchaseCounts = 0;
                 }
@@ -75,7 +76,7 @@ public class CronService {
             statisticsInfo.setProductionCapacityPerDay(productionParameters.getProductionCapacityPerDay());
             var timeToMarket = productionParameters.getTimeToMarket();
             var productsProduced = 0;
-            MANUFACTURER_CURRENT_PRODUCT_COUNT.putIfAbsent(productionParameters.getManufacturer().getId(), 0);// либо вернет прошлое значение либо положит 0
+            MANUFACTURER_CURRENT_PRODUCT_COUNT.putIfAbsent(productionParameters.getManufacturer().getId(), 0);
             if ((Game.currentDay - productionParameters.getStartDate()) <= timeToMarket) {
                 if ((productionParameters.getStartDate() + timeToMarket) == Game.currentDay) {
                     productsProduced = productionParameters.getProductCount() - (timeToMarket - 1) *
@@ -120,11 +121,13 @@ public class CronService {
         Optional<Advertisement> lastAdvertisement = manufacturerService.getLastAdvertisement(productionParameters.getManufacturer().getId());
         var intensityIndex = lastAdvertisement.isPresent() ? lastAdvertisement.get().getIntensityIndex() : 0;
         return productionParameters.getQualityIndex().multiply(qualityWeight)
-            .add(BigDecimal.valueOf(intensityIndex).divide(BigDecimal.valueOf(7), 3, RoundingMode.HALF_UP)).multiply(advertisementWeight)
-            .add(BigDecimal.valueOf(productionParameters.getAssortment()).divide(BigDecimal.valueOf(productionParameters.getProductCount()), 3, RoundingMode.HALF_UP)).multiply(assortmentWeight)
+            .add(BigDecimal.valueOf(intensityIndex).divide(BigDecimal.valueOf(7), 3, RoundingMode.HALF_UP))
+            .multiply(advertisementWeight)
+            .add(BigDecimal.valueOf(productionParameters.getAssortment())
+                .divide(BigDecimal.valueOf(productionParameters.getProductCount()), 3, RoundingMode.HALF_UP))
+            .multiply(assortmentWeight)
             .add(BigDecimal.valueOf(habit).multiply(habitWeight))
             .divide(productionParameters.getPrice(), 6, RoundingMode.HALF_UP).doubleValue();
     }
-
 
 }
